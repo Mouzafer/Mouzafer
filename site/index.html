@@ -1781,10 +1781,12 @@ async function boot(){
   addEventListener('focus',()=>{if(ACC.state==='in')loadAll()});
   setInterval(()=>{if(ACC.state==='in'&&!document.hidden)loadAll()},90000);
 }
-// welcome notice on the first visit (remembered in this browser)
+// welcome notice on every visit
 function openWelcome(){$('welcomeOverlay').hidden=false;setTimeout(()=>$('welcomeOk').focus(),0)}
-$('welcomeOk').onclick=()=>{$('welcomeOverlay').hidden=true;store.set('hrwww.welcome',1)};
-if(!store.get('hrwww.welcome'))openWelcome();
+// shown once per visit: sessionStorage is cleared when the visitor closes the tab or browser
+const seen={get(){try{return sessionStorage.getItem('hrwww.welcome')}catch(e){return null}},set(){try{sessionStorage.setItem('hrwww.welcome','1')}catch(e){}}};
+$('welcomeOk').onclick=()=>{$('welcomeOverlay').hidden=true;seen.set()};
+if(!seen.get())openWelcome();
 boot();
 
 nav();
