@@ -15,13 +15,16 @@ The public website is in `site/`. Accounts and data are handled by [Supabase](ht
 
 ## 2. Emails (confirmation and password reset)
 
-Supabase's built-in email only reaches the addresses of your own Supabase team and sends very few
-messages per hour, so real users would not get their confirmation emails.
-Connect an email service under **Authentication -> Emails -> SMTP Settings**, for example
-Resend or Brevo (both have free plans; they ask you to confirm a domain or sender address).
+Supabase sends its emails through **Brevo** (free plan, 300 emails per day), from `info@humanresourceswww.eu`.
 
-Until that is done you can turn off **Authentication -> Sign In / Providers -> Email -> Confirm email**
-so people can register without an email. Password reset still needs the email service.
+- Brevo: sender `info@humanresourceswww.eu` verified; SMTP key named "Supabase" (Brevo -> SMTP & API).
+- Supabase -> Authentication -> Emails -> SMTP Settings: host `smtp-relay.brevo.com`, port `587`,
+  username = the Brevo SMTP login (`...@smtp-brevo.com`), password = the Brevo SMTP key.
+- Supabase -> Authentication -> Sign In / Providers -> Email: **Confirm email** is on.
+- The mailbox itself (reading mail) is Namecheap Private Email: https://privateemail.com
+
+If emails stop: check Supabase -> Logs -> Auth for the error, and the Brevo dashboard for blocked or bounced messages.
+Never put the SMTP key or any password into this repository.
 
 ## 3. Settings file
 
