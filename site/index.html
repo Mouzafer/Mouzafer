@@ -733,8 +733,8 @@ function certsBase(t){
 const allVerified=t=>!t.pending&&certs(t).every(c=>c.ver&&c.m>=0);
 
 // state
-const F={minLvl:1,sector:'wind',prof:'all',skills:new Set(['blade']),radius:300,avail:'any',sort:'dist'};
-let site={name:'Kimmeria, Greece',lat:41.14,lng:24.93}, area=null, sel=null, list=[], inR=[], picking=false;
+const F={minLvl:1,sector:'all',prof:'all',skills:new Set(),radius:300,avail:'any',sort:'dist'};
+let site={name:'Worldwide',lat:30,lng:10}, noSite=true, area=null, sel=null, list=[], inR=[], picking=false;
 
 // ---------- controls
 // ---------- project location: country -> region -> town, or a point picked on the map
@@ -810,24 +810,26 @@ function fillTowns(r,cur){const near=r?CITIES.map(c=>({c,d:hav(r,c)})).filter(x=
   $('townSel').innerHTML=optv('',r?(near.length?'Region centre':'Region centre (no towns listed)'):'Choose a region first')+near.map(c=>optv(c.name,c.name,c.name===cur)).join('');$('townSel').disabled=!near.length}
 function inArea(t){return t.country===area.name||!!(area.full&&window.d3&&d3.geoContains(area.full,[t.lng,t.lat]))}
 function selectCountry(n){
-  if(!COUNTRIES[n])return; area=COUNTRIES[n]; site={name:n,lat:area.lat,lng:area.lng};
+  if(!COUNTRIES[n])return; noSite=false; area=COUNTRIES[n]; site={name:n,lat:area.lat,lng:area.lng};
   fillCountries(n);fillRegions(n);fillTowns(null);$('siteNote').textContent=`Showing everyone based in ${n}. Choose a region to search by distance.`;update();fly();
 }
 function selectRegion(i){
   const c=$('ctrySel').value, r=(REG[c]||[])[i]; if(!r)return selectCountry(c);
-  area=null; site={name:`${r.name}, ${c}`,lat:r.lat,lng:r.lng}; fillTowns(r);$('siteNote').textContent='Searching by distance from the centre of this region.';update();fly();
+  noSite=false; area=null; site={name:`${r.name}, ${c}`,lat:r.lat,lng:r.lng}; fillTowns(r);$('siteNote').textContent='Searching by distance from the centre of this region.';update();fly();
 }
 function selectTown(n){
   const c=$('ctrySel').value, city=CITIES.find(x=>x.name===n); if(!city)return selectRegion(+$('regSel').value);
-  area=null; site={name:`${n}, ${c}`,lat:city.lat,lng:city.lng};$('siteNote').textContent=`Searching by distance from ${n}.`;update();fly();
+  noSite=false; area=null; site={name:`${n}, ${c}`,lat:city.lat,lng:city.lng};$('siteNote').textContent=`Searching by distance from ${n}.`;update();fly();
 }
 function customSite(name,lat,lng,country){
-  area=null; site={name,lat,lng};
+  noSite=false; area=null; site={name,lat,lng};
   if(!country&&window.d3)country=(Object.values(COUNTRIES).find(c=>c.full&&d3.geoContains(c.full,[lng,lat]))||{}).name;
   fillCountries(country||'');fillRegions(country||'');fillTowns(null);$('siteNote').textContent=`Searching by distance from ${name}.`;
 }
-{const r=REG.Greece[0];fillCountries('Greece');fillRegions('Greece',0);fillTowns(r,'Kimmeria');$('siteNote').textContent='Searching by distance from Kimmeria.'}
-$('ctrySel').addEventListener('change',e=>{if(e.target.value)selectCountry(e.target.value)});
+const WORLD_NOTE='Showing everyone, worldwide. Choose a country, or pick a point on the map, to search near a project.';
+{fillCountries('');fillRegions('');fillTowns(null);$('siteNote').textContent=WORLD_NOTE}
+function resetSite(){noSite=true;area=null;site={name:'Worldwide',lat:30,lng:10};fillCountries('');fillRegions('');fillTowns(null);$('siteNote').textContent=WORLD_NOTE;update();fly()}
+$('ctrySel').addEventListener('change',e=>{e.target.value?selectCountry(e.target.value):resetSite()});
 $('regSel').addEventListener('change',e=>e.target.value===''?selectCountry($('ctrySel').value):selectRegion(+e.target.value));
 $('townSel').addEventListener('change',e=>selectTown(e.target.value));
 function registerCountries(feats){
@@ -851,7 +853,7 @@ function setSector(k){
   $('profSel').innerHTML='<option value="all">All professions</option>'+(k==='all'?[]:SECTORS[k].profs).map(p=>`<option>${esc(p)}</option>`).join('');
   $('profSel').disabled=k==='all';$('skillBlock').hidden=k==='all';drawSkillChips();
 }
-setSector('wind');F.skills.add('blade');drawSkillChips();
+setSector('all');
 $('sectorSel').addEventListener('change',e=>{setSector(e.target.value);update()});
 $('profSel').addEventListener('change',e=>{F.prof=e.target.value;update()});
 $('lvlSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F.minLvl=+b.dataset.v;$('lvlSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));update()});
@@ -869,18 +871,18 @@ function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map
 function matches(t){return !A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
 function update(){
   syncVer(); regBtn();
-  list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=area?inArea(t):t.dist<=F.radius}); list.sort((a,b)=>a.dist-b.dist);
+  list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
   inR=list.filter(t=>t.in);
   if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>b.years-a.years||a.dist-b.dist);
   inR.sort((a,b)=>isVer(b)-isVer(a));
   $('mstats').textContent=`${T.length} professionals in ${new Set(T.map(t=>t.country)).size} countries`;
-  $('radiusOut').textContent=area?'whole country':nf(F.radius)+' km'; $('radius').disabled=!!area;
+  $('radiusOut').textContent=noSite?'choose a location first':area?'whole country':nf(F.radius)+' km'; $('radius').disabled=noSite||!!area;
   const sk=[...F.skills].map(k=>SK[k]).join(' + ')||(F.prof!=='all'?F.prof:F.sector==='all'?'All trades':SECTORS[F.sector].name);
-  $('rTitle').textContent=`${inR.length} ${inR.length===1?'person':'people'} ${area?'in '+area.name:'within '+nf(F.radius)+' km'}`;
-  $('rSub').textContent=`${sk} · ${area?'whole country':short(site.name)}`;
+  $('rTitle').textContent=`${inR.length} ${inR.length===1?'person':'people'} ${noSite?'registered worldwide':area?'in '+area.name:'within '+nf(F.radius)+' km'}`;
+  $('rSub').textContent=`${sk} · ${noSite?'worldwide':area?'whole country':short(site.name)}`;
   $('rList').innerHTML=inR.map(t=>`<li><button type="button" class="ritem${t.id===sel?' on':''}" data-id="${t.id}">
     ${av(t)}
-    <span class="rname">${esc(dn(t))}</span><span class="rdist">${area?'':nf(t.dist)+' km'}</span>
+    <span class="rname">${esc(dn(t))}</span><span class="rdist">${area||noSite?'':nf(t.dist)+' km'}</span>
     <span class="rsub">${esc(t.prof)} · ${esc(t.city)}, ${esc(t.country)}</span>
     <span class="rmeta"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${isVer(t)?'<span class="tag ok">Verified</span>':''}${t.skills.slice(0,3).map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${SK[s]}</span>`).join('')}</span></button></li>`).join('');
   const em=$('rEmpty'); em.hidden=inR.length>0;
@@ -938,7 +940,7 @@ function fit(b,pad,minW){ // transform that fits base-coordinate bounds b into t
   return d3.zoomIdentity.translate(w/2,vh/2).scale(s).translate(-(b[0][0]+b[1][0])/2,-(b[0][1]+b[1][1])/2);
 }
 function ringGeo(){return d3.geoCircle().center([site.lng,site.lat]).radius(F.radius/6371*180/Math.PI).precision(1.5)()}
-function fly(){ if(!hasD3)return; svg.transition().duration(dur(750)).call(zoom.transform,area&&area.feat?fit(path.bounds(area.feat),.86):fit(path.bounds(ringGeo()),.8)); }
+function fly(){ if(!hasD3)return; svg.transition().duration(dur(750)).call(zoom.transform,noSite?fit(B,.98):area&&area.feat?fit(path.bounds(area.feat),.86):fit(path.bounds(ringGeo()),.8)); }
 
 async function loadTopo(){
   if(!window.topojson)return null;
@@ -965,7 +967,7 @@ function drawBase(d){
       const c=path.centroid(best), n=(f.properties&&f.properties.name)||''; if(!n||!isFinite(c[0]))return null;
       return{type:'country',name:RENAME[n]||n,x:c[0],y:c[1],min:ba>1500?0:ba>500?1.4:ba>150?2.4:ba>40?4.2:ba>10?8:ba>2.5?14:26,max:ba>1500?14:ba>150?40:400,pri:-ba};
     }).filter(Boolean);
-    buildLabels(); setExtent(); $('mapLoading').hidden=true; overlay();
+    buildLabels(); setExtent(); if(noSite)svg.call(zoom.transform,fit(B,.98)); $('mapLoading').hidden=true; overlay();
   }catch(e){$('mapLoading').textContent='Country outlines could not load. Pins and distances are still correct.'}
 }
 function buildLabels(){
@@ -1014,7 +1016,7 @@ function overlay(){
   const sn=short(site.name); boxes.push([sx-10,sy-28,sx+16+sn.length*7.2,sy+2]);
   // ring label
   const top=proj([site.lng,Math.min(84,site.lat+F.radius/6371*180/Math.PI)]);
-  gRingLab.attr('x',top[0]*k+tr.x).attr('y',top[1]*k+tr.y-7).text(nf(F.radius)+' km radius').attr('display',area||(sp[1]-top[1])*k<70?'none':null); gSite.attr('display',area?'none':null);
+  gRingLab.attr('x',top[0]*k+tr.x).attr('y',top[1]*k+tr.y-7).text(nf(F.radius)+' km radius').attr('display',noSite||area||(sp[1]-top[1])*k<70?'none':null); gSite.attr('display',noSite||area?'none':null);
   // labels with collision check
   for(const L of LABELS){
     let show=k>=L.min&&k<L.max, x,y;
@@ -1032,9 +1034,9 @@ function hideTip(){$('tip').hidden=true}
 function drawGeo(){
   if(!hasD3)return;
   list.forEach(t=>{const p=P(t);t.px=p[0];t.py=p[1]});
-  gRing.attr('d',area?null:path(ringGeo())); gArea.attr('d',area&&area.full?path(area.full):null);
+  gRing.attr('d',noSite||area?null:path(ringGeo())); gArea.attr('d',area&&area.full?path(area.full):null);
   const t=T.find(x=>x.id===sel);
-  gLink.attr('d',t&&!area?path({type:'LineString',coordinates:[[site.lng,site.lat],[t.lng,t.lat]]}):null);
+  gLink.attr('d',t&&!area&&!noSite?path({type:'LineString',coordinates:[[site.lng,site.lat],[t.lng,t.lat]]}):null);
   gSite.select('text').text(short(site.name));
   overlay();
 }
@@ -1087,7 +1089,7 @@ function renderSheet(){
   else body=`
     ${t.bio?`<p>${esc(t.bio)}</p>`:''}
     <dl class="stats">
-      <div><dt>${area?'To centre of country':'To site'}</dt><dd>${nf(hav(site,t))} km</dd></div>
+      <div><dt>${noSite?'Based in':area?'To centre of country':'To site'}</dt><dd>${noSite?esc(short(t.city)):nf(hav(site,t))+' km'}</dd></div>
       <div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div>
       <div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div>
     </dl>
@@ -1481,7 +1483,7 @@ function lockedSheet(t){
   sheet.innerHTML=`
     <div class="shead">${av(t,1)}<div><h2>${esc(dn(t))}</h2><p>${esc(t.prof)}</p></div><button class="btn small" type="button" data-act="close">Close</button></div>
     <div class="row" style="flex-wrap:wrap"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${verTag(t)}</div>
-    <dl class="stats"><div><dt>To site</dt><dd>${nf(hav(site,t))} km</dd></div><div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div><div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div></dl>
+    <dl class="stats"><div><dt>${noSite?'Based in':'To site'}</dt><dd>${noSite?esc(short(t.city)):nf(hav(site,t))+' km'}</dd></div><div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div><div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div></dl>
     <div><h3>Skills</h3><ul class="skl">${t.skills.map(s=>{const i=(t.skillInfo&&t.skillInfo[s])||{lvl:1,yrs:0};return `<li><b>${esc(SK[s]||s)}</b>${lvlHTML(i.lvl)}<span class="yrs">${i.yrs?i.yrs+(i.yrs==1?' year':' years'):''}</span></li>`}).join('')}</ul></div>
     <dl class="facts"><dt>Trade</dt><dd>${esc(SECTORS[t.sector].name)}</dd><dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd><dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd><dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd></dl>
     <div class="box"><h3>Name, contact details and full CV are closed</h3>
@@ -1794,7 +1796,7 @@ nav();
 let tt; function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,4200)}
 
 update();
-if(hasD3)svg.call(zoom.transform,fit(path.bounds(ringGeo()),.8));
+if(hasD3)svg.call(zoom.transform,fit(B,.98));
 })();
 </script>
 
