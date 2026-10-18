@@ -1,7 +1,7 @@
 # Going live
 
 The public website is in `site/`. Accounts and data are handled by [Supabase](https://supabase.com)
-(free plan). The site is hosted free on GitHub Pages at **https://mouzafer.github.io/Mouzafer/**.
+(free plan). The site is hosted free on GitHub Pages at **https://humanresourceswww.com/**.
 
 ## 1. Create the database (Supabase, about 5 minutes)
 
@@ -9,8 +9,8 @@ The public website is in `site/`. Accounts and data are handled by [Supabase](ht
    and save the database password somewhere safe.
 2. Open **SQL Editor -> New query**, paste all of `supabase/schema.sql`, and press **Run**.
 3. Open **Authentication -> URL Configuration**:
-   - Site URL: `https://mouzafer.github.io/Mouzafer/`
-   - Redirect URLs: add `https://mouzafer.github.io/Mouzafer/`
+   - Site URL: `https://humanresourceswww.com/`
+   - Redirect URLs: add `https://humanresourceswww.com/` and `https://www.humanresourceswww.com/`
 4. Open **Project Settings -> API** and copy the **Project URL** and the **anon public** key.
 
 ## 2. Emails (confirmation and password reset)
@@ -30,9 +30,23 @@ Fill in `site/config.js`:
 - `operator`: your name or company, postal address and contact email. The Privacy notice shows them;
   EU law requires this.
 
-## 4. Turn on the website (GitHub, 1 minute)
+## 4. Turn on the website (GitHub and Namecheap)
 
-In the GitHub repository: **Settings -> Pages -> Build and deployment -> Source: GitHub Actions**.
+1. GitHub repository: **Settings -> Pages -> Build and deployment -> Source: GitHub Actions**.
+2. Same page, **Custom domain**: `humanresourceswww.com` -> **Save**.
+3. Namecheap -> Domain List -> humanresourceswww.com -> **Manage**:
+   - **Nameservers**: Namecheap BasicDNS or PremiumDNS (not the hosting nameservers).
+   - **Advanced DNS**: delete the parking records, then add
+     | Type | Host | Value |
+     |------|------|-------|
+     | A | @ | 185.199.108.153 |
+     | A | @ | 185.199.109.153 |
+     | A | @ | 185.199.110.153 |
+     | A | @ | 185.199.111.153 |
+     | CNAME | www | mouzafer.github.io. |
+4. humanresourceswww.eu -> **Advanced DNS** -> add a **URL Redirect Record**: host `@`, value
+   `https://humanresourceswww.com`, type Permanent (301). Leave any email (MX) records as they are.
+5. After DNS works (minutes to a few hours), tick **Enforce HTTPS** on the GitHub Pages page.
 Every change to `site/` is then published automatically. To publish now: **Actions -> Publish website -> Run workflow**.
 
 ## 5. Make yourself admin

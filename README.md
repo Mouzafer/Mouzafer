@@ -6,7 +6,7 @@ Employers search the map by trade, skill, distance and availability, and send jo
 
 | Folder | What it is |
 |--------|------------|
-| `site/` | The public website (one page + `config.js`). Published to GitHub Pages. |
+| `site/` | The public website (one page + `config.js`). Published to GitHub Pages at https://humanresourceswww.com. |
 | `supabase/schema.sql` | Database tables and access rules for Supabase. |
 | `hr-www/` | The earlier test version that runs as a claude.ai page for invited testers. |
 | `SETUP.md` | How to go live, step by step. |
