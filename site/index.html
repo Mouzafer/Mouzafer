@@ -1734,7 +1734,7 @@ $('authForm').addEventListener('submit',async e=>{
     else if(m==='forgot'){const {error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:SITE});if(error)throw error;authMsg('If an account exists for '+em+', we sent a link to choose a new password.')}
     else{const {error}=await sb.auth.updateUser({password:pw});if(error)throw error;closeAuth();$('auPass').value='';toast('Your new password is saved.')}
   }catch(err){const t=(err&&err.message)||'';
-    authErr(/invalid login/i.test(t)?'Wrong email or password.':/not confirmed/i.test(t)?'Confirm your email first: open the link we sent you.':/already registered/i.test(t)?'This email already has an account. Log in instead.':/rate limit|security purposes/i.test(t)?'Too many attempts. Wait a minute and try again.':/password/i.test(t)?t:'Something went wrong. Check your connection and try again.')}
+    authErr(/invalid login/i.test(t)?'Wrong email or password.':/not confirmed/i.test(t)?'Confirm your email first: open the link we sent you.':/already registered/i.test(t)?'This email already has an account. Log in instead.':/rate limit|security purposes/i.test(t)?'Too many attempts. Wait a minute and try again.':/sending.*email|smtp|mail/i.test(t)?'We could not send the email right now. Please try again later. ('+t+')':/password/i.test(t)?t:'Something went wrong: '+(t||'check your connection and try again.'))}
   go.disabled=false;
 });
 // page buttons handled here (before the general page handler re-renders)
