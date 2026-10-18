@@ -7,8 +7,8 @@ window.HRCFG = {
 
   // Who runs the site. Shown in the Privacy notice and Terms (required in the EU).
   operator: {
-    name: '',     // your name or company name
-    address: '',  // postal address
-    email: ''     // contact email for privacy questions
+    name: 'M. Ismail Oglou',     // your name or company name
+    address: 'Katsoni Terma, Kimmeria, 67100 Xanthi, Greece',  // postal address
+    email: 'info@humanresourceswww.eu'     // contact email for privacy questions
   }
 };
