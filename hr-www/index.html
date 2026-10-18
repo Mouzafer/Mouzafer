@@ -1,0 +1,1640 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Human Resources WWW</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: navy masthead, a search rail on the left, a full cartographic map on the right, the profile sheet slides over the map. */
+:root{
+  --bg:#F3F5F7; --panel:#FFFFFF; --ink:#11212D; --muted:#5B6B77; --line:#DCE3E8; --soft:#EEF2F5;
+  --mast:#0E202D; --mast-ink:#F2F6F8; --mast-muted:#9FB2BF;
+  --accent:#D9480F; --accent-ink:#FFFFFF;
+  --ok:#0B7A5C; --soon:#9A5B00; --late:#66737C; --bad:#B3261E;
+  --sea:#CFE0EA; --shallow:#E2EDF3; --land:#FBFAF6; --coast:#8FA9B9; --border:#C2CBD2; --grat:#BBD0DC; --maptext:#51636F; --seatext:#5C86A0;
+  --ui:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1920; --panel:#16232C; --ink:#E6EDF1; --muted:#94A6B1; --line:#283A45; --soft:#1C2B35;
+  --mast:#0A141B; --mast-ink:#F2F6F8; --mast-muted:#8FA3B0;
+  --accent:#FF7B3A; --accent-ink:#1B0D04;
+  --ok:#3CCB9E; --soon:#F2B24A; --late:#8C9AA4; --bad:#FF8A80;
+  --sea:#0B151C; --shallow:#122029; --land:#1F2D37; --coast:#4E6676; --border:#3A4A56; --grat:#16252F; --maptext:#9DB0BC; --seatext:#4F7189; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0F1920; --panel:#16232C; --ink:#E6EDF1; --muted:#94A6B1; --line:#283A45; --soft:#1C2B35;
+  --mast:#0A141B; --mast-ink:#F2F6F8; --mast-muted:#8FA3B0;
+  --accent:#FF7B3A; --accent-ink:#1B0D04;
+  --ok:#3CCB9E; --soon:#F2B24A; --late:#8C9AA4; --bad:#FF8A80;
+  --sea:#0B151C; --shallow:#122029; --land:#1F2D37; --coast:#4E6676; --border:#3A4A56; --grat:#16252F; --maptext:#9DB0BC; --seatext:#4F7189; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p,dl,dd{margin:0}
+
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.mast{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:10px 18px;background:var(--mast);color:var(--mast-ink)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.brand svg{flex:none}
+.brand b{color:var(--accent);font-weight:800}
+.mstats{color:var(--mast-muted);font-size:13px;flex:1 1 200px;min-width:0}
+.mnote{font-size:12px;color:var(--mast-muted);border:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);padding:3px 9px;border-radius:999px}
+
+.btn{border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13.5px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:5px 10px;font-size:12.5px;border-radius:6px}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+
+.main{display:grid;grid-template-columns:392px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"filters map" "results map";min-height:0}
+.filters{grid-area:filters;background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 18px;display:grid;gap:14px}
+.results{grid-area:results;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;min-height:0}
+.mapwrap{grid-area:map;position:relative;background:var(--sea);min-height:0;overflow:hidden}
+
+.flabel{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.flabel output{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{min-width:0}
+.row select{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;cursor:pointer}
+.chip:hover{border-color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-left:1px solid var(--line);background:transparent;padding:7px 4px;font-size:12.5px;font-weight:500;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;background:none;display:block}
+
+.rhead{position:sticky;top:0;background:var(--panel);padding:14px 18px 10px;border-bottom:1px solid var(--line);z-index:1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.rhead h2{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25;grid-column:1/3}
+.rhead p{color:var(--muted);font-size:12.5px;grid-column:1;grid-row:2;overflow-wrap:anywhere}
+.rhead select{grid-row:2;grid-column:2;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:4px 6px;font-size:12.5px}
+.rlist{list-style:none;margin:0;padding:0}
+.ritem{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:2px 12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:12px 18px;cursor:pointer;align-items:start}
+.ritem:hover{background:var(--soft)}
+.ritem.on{background:var(--soft);box-shadow:inset 3px 0 0 var(--accent)}
+.av{grid-row:1/4;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13.5px;background:var(--soft);border:2px solid var(--late);color:var(--ink)}
+.av.now{border-color:var(--ok)} .av.soon{border-color:var(--soon)}
+.av.big{width:56px;height:56px;font-size:18px}
+.rname{font-weight:700}
+.rdist{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px;text-align:right;white-space:nowrap}
+.rsub{color:var(--muted);font-size:12.5px;overflow-wrap:anywhere;grid-column:2/4}
+.rmeta{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:3px}
+.empty{padding:18px;color:var(--muted);display:grid;gap:10px;justify-items:start}
+
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill.now{color:var(--ok)} .pill.soon{color:var(--soon)} .pill.later{color:var(--late)}
+.pill.later::before{background:transparent;box-shadow:inset 0 0 0 2px currentColor}
+.tag{font-size:11.5px;font-weight:500;border:1px solid var(--line);border-radius:5px;padding:1px 7px;white-space:nowrap;color:var(--muted)}
+.tag.hit{color:var(--ink);background:var(--soft)}
+.tag.ok{color:var(--ok);border-color:currentColor} .tag.warn{color:var(--soon);border-color:currentColor} .tag.bad{color:var(--bad);border-color:currentColor}
+
+/* map */
+#map{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none;user-select:none}
+#map:active{cursor:grabbing}
+#map.pick{cursor:crosshair}
+.grat{fill:none;stroke:var(--grat);stroke-width:.7;vector-effect:non-scaling-stroke}
+.halo{fill:none;stroke:var(--shallow);stroke-width:9;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.land{fill:var(--land)}
+.border{fill:none;stroke:var(--border);stroke-width:.9;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.coast{fill:none;stroke:var(--coast);stroke-width:.8;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ring.solid{stroke-dasharray:none;fill-opacity:.07}
+.ring{fill:var(--accent);fill-opacity:.06;stroke:var(--accent);stroke-width:1.6;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
+.link{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-dasharray:2 4;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.lab{pointer-events:none}
+.lab text{font-family:var(--ui);paint-order:stroke;stroke:var(--land);stroke-width:3px;stroke-linejoin:round}
+.lab.country text{fill:var(--maptext);font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-anchor:middle}
+.lab.city text{fill:var(--ink);font-size:11.5px;font-weight:500}
+.lab.city circle{fill:var(--panel);stroke:var(--maptext);stroke-width:1.3}
+.lab.sea text{fill:var(--seatext);font-size:12px;font-style:italic;font-weight:500;letter-spacing:.06em;text-anchor:middle;stroke:none}
+.ringlab{font-family:var(--mono);font-size:11.5px;font-weight:500;fill:var(--accent);text-anchor:middle;paint-order:stroke;stroke:var(--land);stroke-width:3px;pointer-events:none}
+.pin{cursor:pointer}
+.pin .sh{fill:#000;opacity:.22}
+.pin .c{stroke:var(--panel);stroke-width:2.5}
+.pin.now .c{fill:var(--ok)} .pin.soon .c{fill:var(--soon)} .pin.later .c{fill:var(--late)}
+.pin.multi .c{fill:var(--mast);stroke:var(--panel)}
+.pin.multi.now .c{stroke:var(--ok)}
+.pin text{fill:#fff;font-family:var(--mono);font-size:12px;font-weight:500;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin.out{opacity:.45}
+.pin .selring{fill:none;stroke:var(--ink);stroke-width:2}
+.site{pointer-events:none}
+.site path{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.site circle{fill:var(--panel)}
+.site text{fill:var(--ink);font-family:var(--ui);font-weight:700;font-size:12.5px;paint-order:stroke;stroke:var(--land);stroke-width:3.5px;stroke-linejoin:round}
+
+.mapctl{position:absolute;left:14px;top:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.zoomer{display:grid;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);box-shadow:0 2px 8px rgb(0 0 0 / .12)}
+.zoomer button{border:0;background:transparent;width:36px;height:34px;font-size:18px;cursor:pointer;line-height:1}
+.zoomer button+button{border-top:1px solid var(--line)}
+.zoomer button:hover{background:var(--soft)}
+.mapctl .btn{box-shadow:0 2px 8px rgb(0 0 0 / .12)}
+.legend{position:absolute;left:14px;bottom:14px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:4px 14px;max-width:calc(100% - 190px);box-shadow:0 2px 8px rgb(0 0 0 / .1)}
+.scale{position:absolute;right:14px;bottom:14px;display:grid;justify-items:end;gap:3px;font-family:var(--mono);font-size:11px;color:var(--maptext);pointer-events:none}
+.scale i{display:block;height:6px;border:1.5px solid var(--maptext);border-top:0}
+.maploading{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:12.5px;color:var(--muted);box-shadow:0 2px 8px rgb(0 0 0 / .1)}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;box-shadow:0 6px 18px rgb(0 0 0 / .18);transform:translate(-50%,calc(-100% - 16px));white-space:nowrap;font-size:12.5px;z-index:2}
+.tip b{display:block;font-size:13.5px}
+.tip span{color:var(--muted)}
+
+/* profile sheet */
+.sheet{position:absolute;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:18px;display:grid;gap:18px;align-content:start;box-shadow:-10px 0 30px rgb(0 0 0 / .14);z-index:3}
+.shead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}
+.shead h2{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.shead p{color:var(--muted)}
+.sheet h3{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:10px}
+.stats div{padding:10px 12px;min-width:0}
+.stats div+div{border-left:1px solid var(--line)}
+.stats dt{font-size:11.5px;color:var(--muted)}
+.stats dd{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px}
+.facts dt{color:var(--muted)} .facts dd{overflow-wrap:anywhere}
+.certs{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.certs li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.certs small{color:var(--muted);font-size:12px}
+.weeks{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.weeks i{height:20px;border-radius:3px;background:var(--ok)}
+.weeks i.b{background:var(--line)}
+.wk{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:5px}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:12px;background:var(--soft)}
+.box.done{border-color:var(--ok)}
+.box h3{margin:0;color:var(--ink);font-size:14px;font-weight:700}
+.lock{color:var(--muted);font-size:12.5px}
+.contact{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.contact code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere;user-select:all}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+
+.overlay{position:fixed;inset:0;background:rgb(8 16 22 / .6);display:grid;place-items:center;padding:16px;z-index:20;overflow-y:auto}
+.modal{background:var(--panel);border-radius:14px;width:min(600px,100%);padding:22px;display:grid;gap:16px;max-height:100%;overflow-y:auto}
+.modal h2{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.mhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.modal .grid2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.check input{margin-top:3px}
+.err{color:var(--bad);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:8px;z-index:30;max-width:calc(100% - 32px);font-weight:500;box-shadow:0 8px 24px rgb(0 0 0 / .25)}
+
+.av{background-size:cover;background-position:center}
+.modal.wiz{width:min(780px,100%);padding:0;gap:0;grid-template-rows:auto auto minmax(0,1fr) auto;max-height:min(100%,860px);overflow:hidden}
+.wiz .mhead{padding:20px 22px 14px}
+.steps{list-style:none;margin:0;padding:0 22px 14px;display:flex;gap:6px;border-bottom:1px solid var(--line)}
+.steps li{flex:1;min-width:0}
+.steps button{width:100%;border:0;background:transparent;padding:0;cursor:pointer;display:grid;gap:6px;text-align:left;font-size:12px;color:var(--muted);font-weight:600}
+.steps button::before{content:"";height:4px;border-radius:2px;background:var(--line)}
+.steps li.done button::before,.steps li.cur button::before{background:var(--accent)}
+.steps li.cur button{color:var(--ink)}
+.steps button:disabled{cursor:default}
+.steps span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbody{padding:18px 22px;overflow-y:auto;display:grid;gap:14px;align-content:start}
+.rstep{display:grid;gap:16px}
+.rstep h3{font-size:17px;font-weight:700}
+.wfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;align-items:center}
+.photo{display:flex;gap:14px;align-items:center}
+.photo .field{flex:1;min-width:0}
+.clist{list-style:none;margin:0;padding:0}
+.clist li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.clist small{grid-column:1/4;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.review{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.review .box{align-content:start}
+.review dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 14px;font-size:13px}
+.review dt{color:var(--muted)} .review dd{overflow-wrap:anywhere}
+@media (max-width:620px){.steps li:not(.cur) span{display:none}.steps li.cur{flex:5}.wiz .mhead,.wbody,.wfoot{padding-inline:16px}.steps{padding-inline:16px}}
+.seg.three{grid-template-columns:repeat(3,1fr);margin-top:8px}
+.tabs{display:flex;flex-wrap:wrap;gap:0 4px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:8px 10px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.lvl{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--muted);white-space:nowrap}
+.lvl i{width:14px;height:6px;border-radius:2px;background:var(--line)}
+.lvl i.on{background:var(--ink)}
+.lvl i:last-of-type{margin-right:4px}
+.skl,.tl{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.skl li{display:grid;grid-template-columns:minmax(0,1fr) auto 62px;gap:2px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.skl b,.tl b,.certs b{font-weight:600}
+.skl .yrs{text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.skl small,.tl span{color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.skl small{grid-column:1/4}
+.tl li{display:grid;gap:1px;padding:10px 0 10px 14px;border-bottom:1px solid var(--line);border-left:2px solid var(--line);margin-left:3px}
+.tl li:first-child{border-left-color:var(--accent)}
+.tl small{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.tl p{font-size:13px;margin-top:3px}
+.certs li small:nth-of-type(n){grid-column:1/3}
+.rows{display:grid;gap:10px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.srow b,.srow input:not([type=number]){grid-column:1/3}
+.srow select,.srow input{width:100%;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.steps span{font-size:11.5px}
+.mnav{display:flex;flex-wrap:wrap;gap:2px;flex:1 1 auto;min-width:0}
+.mnav button{border:0;background:transparent;color:var(--mast-muted);font-weight:600;font-size:13.5px;padding:7px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.mnav button:hover{color:var(--mast-ink)}
+.mnav button[aria-current="page"]{color:var(--mast-ink);background:color-mix(in srgb,var(--mast-ink) 12%,transparent)}
+.role{display:flex;align-items:center;gap:0;font-size:12px;color:var(--mast-muted);border:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);border-radius:8px;overflow:hidden}
+.role span{padding:0 9px}
+.role button{border:0;border-left:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);background:transparent;color:var(--mast-muted);font-weight:600;font-size:12.5px;padding:6px 10px;cursor:pointer}
+.role button[aria-pressed="true"]{background:var(--mast-ink);color:var(--mast)}
+.mstats{display:none}
+.acct{display:flex;align-items:center;gap:8px;border:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);background:transparent;color:var(--mast-ink);border-radius:999px;padding:3px 12px 3px 3px;cursor:pointer;font-weight:600;font-size:13px;max-width:240px;min-height:34px}
+.acct span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct img{width:26px;height:26px;border-radius:50%;flex:none}
+.acct:not(:has(img:not([hidden]))){padding-left:12px}
+.joins{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.who{display:flex;align-items:center;gap:12px}
+.who img{width:44px;height:44px;border-radius:50%}
+.page{overflow-y:auto;min-height:0;background:var(--bg)}
+.pwrap{max-width:900px;margin:0 auto;padding:24px 18px 56px;display:grid;gap:16px}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.phead h1{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+.card h2{font-size:16px;font-weight:700}
+.card.slim{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.card.pc{grid-template-columns:auto minmax(0,1fr);align-items:start;gap:14px}
+.pcb{display:grid;gap:7px;min-width:0}
+.meta{color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.rowb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rowb.between{justify-content:space-between}
+.rate{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.rate b{color:var(--soon);font-weight:700}
+.stars{color:var(--soon);letter-spacing:.08em}
+.inb{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:6px}
+.wkb{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.wkb button{border:1px solid var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ink);border-radius:8px;padding:8px 4px;font-size:12px;font-weight:600;cursor:pointer;display:grid;gap:2px}
+.wkb button span{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted)}
+.wkb button[aria-pressed="true"]{border-color:var(--line);background:var(--soft);color:var(--muted)}
+.tblw{overflow-x:auto}
+.tbl{border-collapse:collapse;width:100%;font-size:12.5px}
+.tbl th{text-align:left;color:var(--muted);font-weight:600;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+@media (max-width:620px){.wkb{grid-template-columns:repeat(3,minmax(0,1fr))}.card.pc{grid-template-columns:minmax(0,1fr)}.role span{display:none}}
+.lockli{padding:16px 18px}
+.quota{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 18px;background:var(--soft);border-bottom:1px solid var(--line);font-size:13px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.plan1{align-content:start;gap:14px}
+.plan1.cur{border-color:var(--accent)}
+.lockbox{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;background:var(--soft);justify-items:start}
+.lockbox>b{font-size:15px}
+.cnt{list-style:none;margin:0;padding:0;width:100%;border-top:1px solid var(--line)}
+.cnt li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.cnt b{font-variant-numeric:tabular-nums}
+.price{font-size:13px;color:var(--muted)}
+.price b{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.price.big b{font-size:34px}
+.card.plan{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;border-color:var(--accent)}
+.incl{margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px}
+.terms{border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px}
+.terms summary{cursor:pointer;font-weight:600}
+.terms ul{margin:10px 0 4px;padding-left:18px;display:grid;gap:5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+@media (max-width:860px){
+  html,body{height:auto}
+  .app{height:auto}
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"filters" "map" "results"}
+  .filters,.results{border-right:0}
+  .mapwrap{height:64vh;min-height:360px}
+  .results{overflow:visible}
+  .rhead{position:static}
+  .sheet{position:fixed;z-index:15;width:100%;border-left:0;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+  .mstats{display:none}
+  .legend{max-width:calc(100% - 28px)}
+  .scale{bottom:auto;top:14px}
+  .maploading{top:auto;bottom:64px;white-space:nowrap}
+}
+@media (min-width:861px){.filters{max-height:56vh;overflow-y:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="mast">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="var(--accent)"/><path d="M15 6.5c-3.6 0-6.5 2.8-6.5 6.3 0 4.6 6.5 10.7 6.5 10.7s6.5-6.1 6.5-10.7c0-3.5-2.9-6.3-6.5-6.3z" fill="#fff"/><circle cx="15" cy="12.8" r="2.6" fill="var(--accent)"/></svg>
+      <span>Human Resources <b>WWW</b></span>
+    </div>
+    <nav class="mnav" id="mnav" aria-label="Sections"></nav>
+    <p class="mstats" id="mstats"></p>
+    <div class="role" id="roleSeg" aria-label="View as" hidden><span>View as</span><button type="button" data-r="emp">Employer</button><button type="button" data-r="wrk">Worker</button><button type="button" data-r="adm">Admin</button></div>
+    <button class="acct" id="acctBtn" type="button"><img id="acctImg" alt="" hidden><span id="acctName">Signing in…</span></button>
+    <button class="btn primary" id="openReg" type="button" hidden>Register as worker</button>
+  </header>
+
+  <div class="page" id="page" hidden></div>
+  <div class="main" id="mainWrap">
+    <section class="filters" aria-label="Search filters">
+      <div class="field">
+        <label class="flabel" for="ctrySel">Project location</label>
+        <div class="row">
+          <select id="ctrySel"></select>
+          <button class="btn small" id="pickBtn" type="button" aria-pressed="false">Pick on map</button>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="field"><label class="flabel" for="regSel">Region</label><select id="regSel"></select></div>
+        <div class="field"><label class="flabel" for="townSel">Town</label><select id="townSel"></select></div>
+      </div>
+      <p class="lock" id="siteNote"></p>
+      <div class="field">
+        <label class="flabel" for="radius">Search radius <output id="radiusOut"></output></label>
+        <input type="range" id="radius" min="50" max="3000" step="50" value="300">
+      </div>
+      <div class="pair">
+        <div class="field"><label class="flabel" for="sectorSel">Trade</label><select id="sectorSel"></select></div>
+        <div class="field"><label class="flabel" for="profSel">Profession</label><select id="profSel"></select></div>
+      </div>
+      <div id="skillBlock">
+        <span class="flabel">Skills needed</span>
+        <div class="chips" id="skillChips"></div>
+        <div class="seg three" id="lvlSeg" aria-label="Minimum skill level"><button type="button" data-v="1" aria-pressed="true">Any level</button><button type="button" data-v="2" aria-pressed="false">Independent +</button><button type="button" data-v="3" aria-pressed="false">Expert</button></div>
+      </div>
+      <div>
+        <span class="flabel">Availability</span>
+        <div class="seg" id="availSeg">
+          <button type="button" data-v="any" aria-pressed="true">Any</button>
+          <button type="button" data-v="0" aria-pressed="false">Now</button>
+          <button type="button" data-v="2" aria-pressed="false">2 weeks</button>
+          <button type="button" data-v="4" aria-pressed="false">4 weeks</button>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="verOnly"> <span>Verified profiles only</span></label>
+    </section>
+
+    <section class="results" aria-label="Matching technicians">
+      <div class="rhead">
+        <h2 id="rTitle"></h2>
+        <select id="sortSel" aria-label="Sort results"><option value="dist">Nearest first</option><option value="free">Soonest free</option><option value="years">Most experience</option></select>
+        <p id="rSub"></p>
+      </div>
+      <ul class="rlist" id="rList"></ul>
+      <div class="empty" id="rEmpty" hidden></div>
+    </section>
+
+    <section class="mapwrap" id="mapwrap" aria-label="Map">
+      <svg id="map" role="img" aria-label="World map of registered technicians"></svg>
+      <div class="maploading" id="mapLoading">Loading map…</div>
+      <div class="mapctl">
+        <div class="zoomer"><button id="zin" type="button" aria-label="Zoom in">+</button><button id="zout" type="button" aria-label="Zoom out">−</button></div>
+        <button class="btn small" id="zsite" type="button">Project site</button>
+        <button class="btn small" id="zworld" type="button">World</button>
+      </div>
+      <div class="legend">
+        <span class="pill now">Available now</span>
+        <span class="pill soon">Free within 4 weeks</span>
+        <span class="pill later">Booked longer</span>
+      </div>
+      <div class="scale"><span id="scaleTxt"></span><i id="scaleBar"></i><span>Map data: Natural Earth</span></div>
+      <div class="tip" id="tip" hidden></div>
+      <aside class="sheet" id="sheet" hidden aria-label="Technician profile"></aside>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="regOverlay" hidden>
+  <form class="modal wiz" id="regForm" novalidate role="dialog" aria-modal="true" aria-labelledby="regTitle">
+    <div class="mhead"><div><h2 id="regTitle">Register your profile</h2><p class="lock">Free for workers. Your draft is saved in this browser as you type.</p></div><button class="btn small" type="button" id="closeReg">Close</button></div>
+    <ol class="steps" id="regSteps"></ol>
+    <div class="wbody" id="regBody">
+      <section class="rstep" data-step="0">
+        <h3>About you</h3>
+        <div class="photo"><span class="av big" id="rgPhotoPrev"></span>
+          <div class="field"><label class="flabel" for="rgPhoto">Profile photo (optional)</label><input type="file" id="rgPhoto" accept="image/png,image/jpeg"></div></div>
+        <div class="grid2">
+          <div class="field"><label class="flabel" for="rgFirst">First name</label><input id="rgFirst" autocomplete="given-name"></div>
+          <div class="field"><label class="flabel" for="rgLast">Surname</label><input id="rgLast" autocomplete="family-name"></div>
+          <div class="field"><label class="flabel" for="rgEmail">Email</label><input id="rgEmail" type="email" autocomplete="email"></div>
+          <div class="field"><label class="flabel" for="rgPhone">Phone or WhatsApp</label><input id="rgPhone" type="tel" autocomplete="tel" placeholder="+30 …"></div>
+        </div>
+        <p class="lock">Employers with a paid account see your full profile, including your name, phone and email. Other workers and visitors see only a dot on the map.</p>
+      </section>
+      <section class="rstep" data-step="1" hidden>
+        <h3>Your work</h3>
+        <div class="grid2">
+          <div class="field"><label class="flabel" for="rgSector">Trade</label><select id="rgSector"></select></div>
+          <div class="field"><label class="flabel" for="rgProf">Profession</label><select id="rgProf"></select></div>
+          <div class="field" id="rgProfOtherWrap" hidden><label class="flabel" for="rgProfOther">Your profession</label><input id="rgProfOther" placeholder="e.g. Tunnel miner"></div>
+          <div class="field"><label class="flabel" for="rgLevel">Level</label>
+            <select id="rgLevel"><option>Helper / trainee</option><option selected>Skilled worker</option><option>Senior / lead hand</option><option>Foreman / supervisor</option><option>Engineer / specialist</option></select></div>
+          <div class="field"><label class="flabel" for="rgYears">Total years in this trade</label><input id="rgYears" type="number" min="0" max="50" inputmode="numeric"></div>
+        </div>
+        <div class="field"><label class="flabel" for="rgBio">Professional summary <output id="rgBioN">0 / 400</output></label><textarea id="rgBio" rows="4" maxlength="400" placeholder="Two or three sentences: what you do best, typical projects, machines or materials you know"></textarea></div>
+      </section>
+      <section class="rstep" data-step="2" hidden>
+        <h3>Skills</h3>
+        <div><span class="flabel">Choose every skill you have in this trade, then rate each one</span><div class="chips" id="rgSkills"></div></div>
+        <div class="rows" id="rgSkillRows"></div>
+        <div id="rgOemWrap"><span class="flabel">Turbine manufacturers you have worked on</span><div class="chips" id="rgOem"></div></div>
+        <h3>Languages</h3>
+        <div class="box">
+          <div class="grid2">
+            <div class="field"><label class="flabel" for="rlName">Language</label><select id="rlName"></select></div>
+            <div class="field" id="rlOtherWrap" hidden><label class="flabel" for="rlOther">Which language</label><input id="rlOther"></div>
+            <div class="field"><label class="flabel" for="rlLvl">Level</label><select id="rlLvl"><option>Native</option><option selected>Fluent</option><option>Conversational</option><option>Basic</option></select></div>
+          </div>
+          <div class="row"><button class="btn small" type="button" id="rlAdd">Add language</button></div>
+        </div>
+        <ul class="clist" id="rlList"></ul>
+      </section>
+      <section class="rstep" data-step="3" hidden>
+        <h3>Work experience</h3>
+        <div class="box">
+          <div class="grid2">
+            <div class="field"><label class="flabel" for="rjRole">Job title</label><input id="rjRole" placeholder="e.g. Blade repair technician"></div>
+            <div class="field"><label class="flabel" for="rjOrg">Employer or project</label><input id="rjOrg" placeholder="Company, wind farm or site"></div>
+            <div class="field"><label class="flabel" for="rjPlace">Country or region</label><input id="rjPlace"></div>
+            <div class="pair">
+              <div class="field"><label class="flabel" for="rjFrom">From (year)</label><input id="rjFrom" type="number" inputmode="numeric" placeholder="2021"></div>
+              <div class="field"><label class="flabel" for="rjTo">To (year)</label><input id="rjTo" type="number" inputmode="numeric" placeholder="Empty = today"></div>
+            </div>
+          </div>
+          <div class="field"><label class="flabel" for="rjText">What you did</label><textarea id="rjText" rows="2" placeholder="Tasks, turbine or machine types, size of the project, your responsibility"></textarea></div>
+          <div class="row"><button class="btn small" type="button" id="rjAdd">Add job</button></div>
+        </div>
+        <ul class="clist" id="rjList"></ul>
+        <h3>Education and training</h3>
+        <div class="box">
+          <div class="grid2">
+            <div class="field"><label class="flabel" for="reTitle">Qualification or course</label><input id="reTitle" placeholder="e.g. Vocational diploma, electrician"></div>
+            <div class="field"><label class="flabel" for="reSchool">School or training provider</label><input id="reSchool"></div>
+            <div class="field"><label class="flabel" for="reYear">Year completed</label><input id="reYear" type="number" inputmode="numeric"></div>
+          </div>
+          <div class="row"><button class="btn small" type="button" id="reAdd">Add education</button></div>
+        </div>
+        <ul class="clist" id="reList"></ul>
+      </section>
+      <section class="rstep" data-step="4" hidden>
+        <h3>Certificates and licences</h3>
+        <div class="field"><label class="flabel" for="rgWinda">WINDA ID (wind only, optional)</label><input id="rgWinda" placeholder="Lets us verify GWO certificates automatically"></div>
+        <div class="box">
+          <div class="grid2">
+            <div class="field"><label class="flabel" for="rcType">Certificate</label><select id="rcType"></select></div>
+            <div class="field" id="rcOtherWrap" hidden><label class="flabel" for="rcOther">Certificate name</label><input id="rcOther"></div>
+            <div class="field"><label class="flabel" for="rcIssuer">Issued by</label><input id="rcIssuer" placeholder="Training provider or authority"></div>
+            <div class="field"><label class="flabel" for="rcNo">Certificate number</label><input id="rcNo"></div>
+            <div class="field"><label class="flabel" for="rcIssued">Date issued</label><input id="rcIssued" type="date"></div>
+            <div class="field"><label class="flabel" for="rcExp">Valid until</label><input id="rcExp" type="date"></div>
+            <div class="field"><label class="flabel" for="rcFile">File (PDF or photo)</label><input id="rcFile" type="file" accept="application/pdf,image/png,image/jpeg"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="rcNoExp"> <span>This certificate does not expire</span></label>
+          <div class="row"><button class="btn small" type="button" id="rcAdd">Add certificate</button></div>
+        </div>
+        <ul class="clist" id="rcList"></ul>
+        <p class="lock">Employers with a paid account see every certificate with its number, dates and file.</p>
+      </section>
+      <section class="rstep" data-step="5" hidden>
+        <h3>Where you are based</h3>
+        <div class="grid2">
+          <div class="field"><label class="flabel" for="rgCity">Nearest town or city</label><input id="rgCity" list="rgCityList" autocomplete="off" placeholder="Start typing, e.g. Xanthi"><datalist id="rgCityList"></datalist></div>
+          <div class="field"><label class="flabel" for="rgCountry">Country</label><input id="rgCountry" list="rgCountryList" autocomplete="country-name"><datalist id="rgCountryList"></datalist></div>
+          <div class="field"><label class="flabel" for="rgTravel">How far will you travel for work?</label>
+            <select id="rgTravel"><option>My country only</option><option selected>Neighbouring countries</option><option>Whole continent</option><option>Worldwide</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="rgOffshore"> <span>I also work offshore</span></label>
+        <label class="check"><input type="checkbox" id="rgLicence"> <span>I have a driving licence</span></label>
+        <label class="check"><input type="checkbox" id="rgVehicle"> <span>I can bring my own vehicle</span></label>
+        <p class="lock">The map shows your town, never your home address.</p>
+      </section>
+      <section class="rstep" data-step="6" hidden>
+        <h3>Availability and terms</h3>
+        <div class="grid2">
+          <div class="field"><label class="flabel" for="rgFrom">Available from</label><input id="rgFrom" type="date"></div>
+          <div class="field"><label class="flabel" for="rgWork">How you work</label>
+            <select id="rgWork"><option>Freelance / self-employed</option><option>Through my employer</option><option>Open to both</option></select></div>
+          <div class="field"><label class="flabel" for="rgRate">Day rate (optional)</label>
+            <div class="row"><input id="rgRate" type="number" min="0" inputmode="numeric" placeholder="e.g. 350"><select id="rgCur" aria-label="Currency" style="flex:0 0 84px"><option>EUR</option><option>GBP</option><option>USD</option></select></div></div>
+        </div>
+        <label class="check"><input type="checkbox" id="rgRateShow"> <span>Show my day rate to employers. If unticked they see "On request".</span></label>
+        <details class="terms"><summary>Terms for workers (draft summary)</summary><ul>
+          <li>Registration and your profile are free.</li>
+          <li>You enter all profile information yourself and confirm that it is true and belongs to you.</li>
+          <li>Employers with a paid account can open your full profile, including name, contact details, CV and certificates. Before opening they see your profession, skills, town and availability without your name.</li>
+          <li>Other workers and visitors see only a dot on the map, without your name.</li>
+          <li>You can change or delete your profile at any time.</li>
+          <li>Verification of your certificates is optional and costs €15 per year + VAT.</li>
+          <li>An admin can suspend false profiles.</li></ul></details>
+        <label class="check"><input type="checkbox" id="rgOk"> <span>I confirm that I entered everything on this profile myself, that it is true and belongs to me, and I agree that employers with a paid account can see all of it, including my name, contact details and certificates.</span></label>
+        <label class="check"><input type="checkbox" id="rgTerms"> <span>I accept the Terms for workers and the Privacy notice.</span></label>
+      </section>
+      <section class="rstep" data-step="7" hidden>
+        <h3>Check your profile</h3>
+        <div class="review" id="regReview"></div>
+        <p class="lock">Your profile is free and goes live as soon as you submit. Verification is optional (€15 per year + VAT) and is offered in My area.</p>
+      </section>
+      <p class="err" id="rgErr" hidden></p>
+    </div>
+    <div class="wfoot"><button class="btn" type="button" id="regBack">Back</button><span class="lock" id="regPos"></span><button class="btn primary" type="submit" id="regNext">Continue</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SK={blade:'Blade repair',rope:'Rope access',elec:'Electrical / HV',mech:'Mechanical',hyd:'Hydraulics',inst:'Installation',insp:'Blade inspection',resc:'Rescue & safety'};
+const SECTORS={
+ wind:{name:'Wind energy',profs:['Blade repair technician','Rope access technician','Service technician','Electrical technician','Installation technician','Blade inspector','Safety trainer'],skills:{...SK},certs:[]},
+ civil:{name:'Civil & structural',profs:['Civil engineer','Concrete worker','Formwork carpenter','Steel fixer','Bricklayer / mason','Scaffolder','Land surveyor','Road & asphalt worker','Tunnel & drilling worker'],skills:{c_conc:'Concrete',c_form:'Formwork',c_rebar:'Rebar fixing',c_mason:'Masonry',c_scaf:'Scaffolding',c_found:'Foundations & piling',c_surv:'Surveying & setting out',c_road:'Roads & earthworks'},certs:['Site safety induction card','Working at height certificate','Scaffolder competence card','Engineer registration']},
+ elec:{name:'Electrical',profs:['Electrician','Industrial electrician','HV / MV cable jointer','Instrumentation & control technician','Solar PV installer','Substation technician'],skills:{e_lv:'LV installation',e_hv:'HV / MV',e_joint:'Cable jointing',e_panel:'Panel building',e_ic:'Instrumentation & control',e_pv:'Solar PV',e_test:'Testing & commissioning'},certs:['Electrician licence','HV switching authorisation','Site safety induction card','Cable jointer certificate']},
+ mech:{name:'Mechanical & piping',profs:['Pipefitter','Plumber','HVAC technician','Mechanical fitter','Millwright','Insulation installer'],skills:{m_pipe:'Pipefitting',m_plumb:'Plumbing',m_hvac:'HVAC',m_fit:'Machinery installation',m_align:'Alignment & torque',m_insul:'Insulation'},certs:['Site safety induction card','Flange and bolting certificate','F-gas certificate']},
+ weld:{name:'Welding & steel',profs:['Welder','Pipe welder','Steel erector','Fabricator / boilermaker','NDT inspector','Welding inspector'],skills:{w_mig:'MIG / MAG (135/136)',w_tig:'TIG (141)',w_mma:'MMA (111)',w_pipe:'Pipe welding',w_struct:'Structural steel',w_ndt:'NDT (UT, MT, PT)'},certs:['ISO 9606-1 welder qualification','Site safety induction card','ISO 9712 NDT Level 2','Welding inspector certificate']},
+ plant:{name:'Plant & lifting',profs:['Mobile crane operator','Tower crane operator','Excavator operator','Rigger / slinger','Telehandler operator','Heavy truck driver','Lifting supervisor'],skills:{p_mcrane:'Mobile crane',p_tcrane:'Tower crane',p_exc:'Excavator',p_rig:'Rigging & slinging',p_tele:'Telehandler / forklift',p_hgv:'Heavy transport'},certs:['Crane / plant operator licence','Rigger and slinger certificate','Site safety induction card']},
+ finish:{name:'Finishing & interiors',profs:['Carpenter / joiner','Painter / industrial coater','Plasterer / drywall installer','Tiler','Roofer','Glazier / façade installer'],skills:{f_carp:'Carpentry',f_paint:'Painting & coating',f_dry:'Drywall & plaster',f_tile:'Tiling',f_roof:'Roofing & waterproofing',f_facade:'Façade & glazing'},certs:['Site safety induction card','Working at height certificate','Trade qualification / diploma']},
+ mgmt:{name:'Site management & HSE',profs:['Site manager','Foreman / supervisor','HSE officer','QA / QC inspector','Project planner','Quantity surveyor'],skills:{g_site:'Site supervision',g_hse:'Health & safety',g_qa:'Quality control',g_plan:'Planning & scheduling',g_cost:'Cost & quantities',g_comm:'Commissioning'},certs:['HSE qualification (NEBOSH or national)','First aid certificate','Site safety induction card']}
+};
+const PROFSEC={}; Object.entries(SECTORS).forEach(([k,v])=>{Object.assign(SK,v.skills);v.profs.forEach(p=>PROFSEC[p]=k)});
+const CERT={blade:'GWO Blade Repair (BR)',rope:'IRATA Rope Access',elec:'GWO BTT Electrical',mech:'GWO BTT Mechanical',hyd:'GWO BTT Hydraulic',inst:'GWO BTT Installation',insp:'Blade inspection, internal and external',resc:'GWO Advanced Rescue Training (ART)'};
+const LANG={sr:'Serbian',el:'Greek',en:'English',de:'German',tr:'Turkish',bg:'Bulgarian',ru:'Russian',ro:'Romanian',mk:'Macedonian',sq:'Albanian',it:'Italian',da:'Danish',es:'Spanish',pt:'Portuguese',pl:'Polish',sv:'Swedish',fr:'French',hi:'Hindi',ta:'Tamil',vi:'Vietnamese',ja:'Japanese',xh:'Xhosa',ar:'Arabic'};
+const RAW=`Nikos P.|Xanthi|Greece|41.13|24.89|Blade repair technician|blade,rope|el,en|0
+Eleni K.|Komotini|Greece|41.12|25.40|Blade repair technician|blade,insp|el,en,de|2
+Hasan M.|Kavala|Greece|40.94|24.41|Rope access technician|rope,blade|el,tr,en|0
+Dimitris S.|Alexandroupoli|Greece|40.85|25.87|Electrical technician|elec,inst|el,en|1
+Giorgos T.|Thessaloniki|Greece|40.64|22.94|Service technician|mech,hyd|el,en|0
+Maria V.|Athens|Greece|37.98|23.73|Electrical technician|elec|el,en|5
+Ivan D.|Plovdiv|Bulgaria|42.14|24.75|Blade repair technician|blade,rope|bg,en|0
+Petar G.|Varna|Bulgaria|43.21|27.91|Service technician|mech,hyd,elec|bg,en,ru|3
+Stoyan N.|Haskovo|Bulgaria|41.93|25.56|Blade repair technician|blade|bg,tr|1
+Emre Y.|Edirne|Türkiye|41.68|26.56|Rope access technician|rope,insp|tr,en|0
+Ayşe D.|Istanbul|Türkiye|41.01|28.98|Blade inspector|insp,blade|tr,en,de|0
+Mehmet A.|Izmir|Türkiye|38.42|27.14|Installation technician|inst,mech|tr,en|4
+Burak Ç.|Çanakkale|Türkiye|40.15|26.41|Blade repair technician|blade,rope|tr|2
+Andrei P.|Constanța|Romania|44.18|28.63|Service technician|mech,elec|ro,en|0
+Luka J.|Skopje|North Macedonia|42.00|21.43|Rope access technician|rope|mk,en|0
+Arben H.|Tirana|Albania|41.33|19.82|Electrical technician|elec,inst|sq,it,en|6
+Jonas W.|Husum|Germany|54.48|9.05|Blade repair technician|blade,rope,resc|de,en|3
+Katrin B.|Bremerhaven|Germany|53.55|8.58|Electrical technician|elec|de,en|0
+Lars N.|Esbjerg|Denmark|55.47|8.45|Installation technician|inst,mech,hyd|da,en|8
+James H.|Aberdeen|United Kingdom|57.15|-2.09|Blade repair technician|blade,rope|en|0
+Callum R.|Hull|United Kingdom|53.74|-0.33|Rope access technician|rope,insp,resc|en|2
+Pablo G.|Zaragoza|Spain|41.65|-0.89|Blade repair technician|blade|es,en|0
+Inês F.|Porto|Portugal|41.15|-8.61|Blade inspector|insp,blade|pt,es,en|1
+Marek Z.|Gdańsk|Poland|54.35|18.65|Service technician|mech,hyd,inst|pl,en,de|0
+Sven L.|Gothenburg|Sweden|57.71|11.97|Electrical technician|elec,inst|sv,en|4
+Luca R.|Foggia|Italy|41.46|15.54|Blade repair technician|blade,rope|it,en|0
+Pierre M.|Nantes|France|47.22|-1.55|Service technician|mech,elec|fr,en|2
+Rahul S.|Chennai|India|13.08|80.27|Blade repair technician|blade,insp|hi,ta,en|0
+Nguyen T.|Ho Chi Minh City|Vietnam|10.82|106.63|Installation technician|inst,mech|vi,en|1
+Kenji M.|Akita|Japan|39.72|140.10|Electrical technician|elec|ja,en|3
+Thabo N.|Gqeberha|South Africa|-33.96|25.60|Rope access technician|rope,blade|en,xh|0
+Youssef B.|Tangier|Morocco|35.76|-5.83|Service technician|mech,hyd|ar,fr,es|0
+Omar K.|Hurghada|Egypt|27.26|33.81|Blade repair technician|blade|ar,en|2
+Carlos M.|Fortaleza|Brazil|-3.73|-38.52|Blade repair technician|blade,rope|pt,es|0
+Diego R.|Oaxaca|Mexico|17.07|-96.72|Service technician|mech,elec|es,en|1
+Tyler J.|Sweetwater, Texas|United States|32.47|-100.41|Blade repair technician|blade,rope|en,es|0
+Emily C.|Des Moines, Iowa|United States|41.59|-93.62|Blade inspector|insp|en|5
+Liam O.|Calgary|Canada|51.05|-114.07|Electrical technician|elec,inst|en,fr|0
+Jack T.|Geelong|Australia|-38.15|144.36|Rope access technician|rope,resc|en|2
+Matías V.|Puerto Madryn|Argentina|-42.77|-65.03|Service technician|mech,hyd|es|0
+Kostas L.|Xanthi|Greece|41.15|24.86|Welder|w_mig,w_struct|el,en|0
+Yannis R.|Kavala|Greece|40.93|24.42|Mobile crane operator|p_mcrane,p_rig|el|1
+Sofia M.|Thessaloniki|Greece|40.63|22.96|Civil engineer|c_found,c_surv|el,en,de|0
+Thanasis B.|Komotini|Greece|41.11|25.42|Electrician|e_lv,e_test|el,en|0
+Petros A.|Drama|Greece|41.15|24.15|Formwork carpenter|c_form,c_conc|el|2
+Christos D.|Alexandroupoli|Greece|40.86|25.89|Pipefitter|m_pipe,m_align|el,en|0
+Vasilis N.|Athens|Greece|37.99|23.71|Site manager|g_site,g_plan|el,en|3
+Georgi P.|Plovdiv|Bulgaria|42.16|24.73|Pipe welder|w_tig,w_pipe|bg,en|0
+Dimitar K.|Sofia|Bulgaria|42.70|23.32|Steel fixer|c_rebar,c_conc|bg|0
+Nikolay S.|Burgas|Bulgaria|42.50|27.47|Scaffolder|c_scaf|bg,ru|1
+Todor V.|Stara Zagora|Bulgaria|42.43|25.63|HV / MV cable jointer|e_hv,e_joint|bg,en|0
+Krasimir I.|Kardzhali|Bulgaria|41.65|25.37|Excavator operator|p_exc|bg,tr|0
+Ali K.|Edirne|Türkiye|41.67|26.54|Steel erector|w_struct,w_mma|tr|0
+Murat Ö.|Istanbul|Türkiye|41.03|28.96|Tower crane operator|p_tcrane,p_rig|tr,en|2
+Zeynep A.|Istanbul|Türkiye|40.99|29.01|HSE officer|g_hse,g_qa|tr,en|0
+Okan T.|Tekirdağ|Türkiye|40.98|27.51|Electrician|e_lv,e_panel|tr|1
+Serkan B.|Bursa|Türkiye|40.19|29.06|HVAC technician|m_hvac,m_pipe|tr,en|0
+Hakan D.|Izmir|Türkiye|38.43|27.16|Solar PV installer|e_pv,e_lv|tr,en|0
+Ion M.|Bucharest|Romania|44.43|26.10|Bricklayer / mason|c_mason,c_conc|ro,it|0
+Marko P.|Belgrade|Serbia|44.79|20.45|Welder|w_mig,w_mma|sr,en|0
+Blerim K.|Tirana|Albania|41.34|19.83|Plasterer / drywall installer|f_dry,f_paint|sq,it|1
+Goran S.|Skopje|North Macedonia|42.01|21.44|Roofer|f_roof,f_carp|mk,en|0
+Stefan H.|Hamburg|Germany|53.55|9.99|Instrumentation & control technician|e_ic,e_test|de,en|4
+Tomasz W.|Warsaw|Poland|52.23|21.01|Carpenter / joiner|f_carp|pl,en,de|0
+Paolo B.|Milan|Italy|45.46|9.19|Painter / industrial coater|f_paint|it,en|1
+Miguel S.|Barcelona|Spain|41.39|2.17|Foreman / supervisor|g_site,g_hse|es,en|0
+Sean M.|Dublin|Ireland|53.35|-6.26|Rigger / slinger|p_rig,p_mcrane|en|0
+Ahmed H.|Cairo|Egypt|30.04|31.24|NDT inspector|w_ndt|ar,en|2
+Raj P.|Mumbai|India|19.08|72.88|QA / QC inspector|g_qa|hi,en|0
+Lucas F.|São Paulo|Brazil|-23.55|-46.63|Mechanical fitter|m_fit,m_align|pt,en|1
+Mike D.|Houston|United States|29.76|-95.37|Pipe welder|w_tig,w_pipe|en,es|0
+Kwame A.|Lagos|Nigeria|6.52|3.38|Electrician|e_lv|en|0`;
+const T=RAW.split('\n').map((r,i)=>{const p=r.split('|');return{id:i+1,name:p[0],city:p[1],country:p[2],lat:+p[3],lng:+p[4],prof:p[5],sector:PROFSEC[p[5]]||'wind',skills:p[6].split(','),langs:p[7].split(',').map(c=>LANG[c]).join(', '),free:+p[8],years:2+(i*3)%14}});
+T.forEach(t=>{t.travel=['Neighbouring countries','Whole continent','Worldwide'][t.id%3];t.oem=t.sector==='wind'?[['Vestas','Siemens Gamesa'],['Enercon','Nordex'],['Vestas','GE Vernova','Nordex'],['Siemens Gamesa']][t.id%4].join(', '):'';t.level=t.prof.includes('engineer')||t.prof.includes('inspector')?'Engineer / specialist':/manager|Foreman|officer/.test(t.prof)?'Foreman / supervisor':t.years<6?'Skilled worker':'Senior / lead hand'});
+const JOBTXT={wind:['Blade and turbine service campaigns on onshore wind farms, 2 to 4 MW turbines.','Assistant technician on maintenance and inspection campaigns.'],civil:['Foundations and structural works on industrial and infrastructure projects.','Site work on residential and commercial buildings.'],elec:['Installation, termination and testing on industrial and energy projects.','Electrical installation in commercial buildings.'],mech:['Installation and maintenance of piping and mechanical equipment on industrial sites.','Workshop and site assembly.'],weld:['Structural and pipe welding to approved procedures on industrial projects.','Workshop fabrication and site repairs.'],plant:['Lifting and earthmoving operations on construction and wind farm sites.','Machine operation on road and building projects.'],finish:['Interior and exterior finishing on commercial and residential projects.','Assistant on building sites.'],mgmt:['Supervision of site teams, safety and quality on multi-contractor projects.','Site coordinator on building projects.']};
+const EDU={wind:'Technical diploma, electromechanics',civil:'Vocational diploma, construction',elec:'Vocational diploma, electrical installation',mech:'Vocational diploma, mechanical engineering',weld:'Welding school certificate',plant:'Plant operator training',finish:'Vocational diploma, building trades',mgmt:'Degree in engineering or construction management'};
+T.forEach(t=>{ // example CV details for the sample profiles
+  const y=new Date().getFullYear(), half=Math.max(1,Math.floor(t.years/2));
+  t.skillInfo={}; t.skills.forEach((s,j)=>{t.skillInfo[s]={lvl:j===0?(t.years>=6?3:2):1+((t.id+j)%3),yrs:j===0?t.years:Math.max(1,Math.round(t.years*(.35+((t.id+j)%4)*.15))),note:''};const i=t.skillInfo[s];if(i.yrs<3)i.lvl=Math.min(i.lvl,2);if(i.yrs<2&&j>0)i.lvl=1});
+  t.langList=t.langs.split(', ').map((n,j)=>({name:n,lvl:j===0?'Native':['Fluent','Conversational','Basic'][(t.id+j)%3]}));
+  t.jobs=[{role:t.prof,org:t.sector==='wind'?'Independent service provider':'Construction contractor',place:t.country,from:y-half,to:'',text:JOBTXT[t.sector][0]},
+    {role:'Junior '+t.prof.toLowerCase(),org:t.sector==='wind'?'Wind service company':'Local contractor',place:t.country,from:y-t.years,to:y-half,text:JOBTXT[t.sector][1]}];
+  t.edu=[{title:EDU[t.sector],school:'Vocational school, '+t.country,year:y-t.years-1}];
+});
+const SITES=[['Xanthi – Kimmeria, Greece',41.14,24.93],['Alexandroupoli, Greece',40.85,25.87],['Varna, Bulgaria',43.21,27.91],['Izmir, Türkiye',38.42,27.14],['Husum, Germany',54.48,9.05],['Aberdeen, United Kingdom',57.15,-2.09]].map(s=>({name:s[0],lat:s[1],lng:s[2]}));
+// map labels: name|lat|lng|rank  (rank 1 = world city, 2 = regional capital, 3 = town, 4 = village)
+const CITIES=`London|51.51|-0.13|1;Paris|48.86|2.35|1;Berlin|52.52|13.40|1;Madrid|40.42|-3.70|1;Rome|41.90|12.50|1;Athens|37.98|23.73|1;Istanbul|41.01|28.98|1;Moscow|55.76|37.62|1;Cairo|30.04|31.24|1;Lagos|6.52|3.38|1;Nairobi|-1.29|36.82|1;Johannesburg|-26.20|28.05|1;Dubai|25.20|55.27|1;Mumbai|19.08|72.88|1;Delhi|28.61|77.21|1;Beijing|39.90|116.41|1;Shanghai|31.23|121.47|1;Tokyo|35.68|139.69|1;Seoul|37.57|126.98|1;Singapore|1.35|103.82|1;Jakarta|-6.21|106.85|1;Sydney|-33.87|151.21|1;New York|40.71|-74.01|1;Los Angeles|34.05|-118.24|1;Chicago|41.88|-87.63|1;Houston|29.76|-95.37|1;Toronto|43.65|-79.38|1;Mexico City|19.43|-99.13|1;São Paulo|-23.55|-46.63|1;Buenos Aires|-34.60|-58.38|1;Lima|-12.05|-77.04|1;Bogotá|4.71|-74.07|1;Sofia|42.70|23.32|2;Bucharest|44.43|26.10|2;Belgrade|44.79|20.45|2;Ankara|39.93|32.86|2;Thessaloniki|40.64|22.94|2;Izmir|38.42|27.14|2;Hamburg|53.55|9.99|2;Copenhagen|55.68|12.57|2;Stockholm|59.33|18.07|2;Oslo|59.91|10.75|2;Warsaw|52.23|21.01|2;Vienna|48.21|16.37|2;Budapest|47.50|19.04|2;Kyiv|50.45|30.52|2;Lisbon|38.72|-9.14|2;Barcelona|41.39|2.17|2;Amsterdam|52.37|4.90|2;Dublin|53.35|-6.26|2;Edinburgh|55.95|-3.19|2;Milan|45.46|9.19|2;Naples|40.85|14.27|2;Tirana|41.33|19.82|2;Skopje|42.00|21.43|2;Casablanca|33.57|-7.59|2;Cape Town|-33.92|18.42|2;Chennai|13.08|80.27|2;Bangkok|13.76|100.50|2;Melbourne|-37.81|144.96|2;Vancouver|49.28|-123.12|2;Dallas|32.78|-96.80|2;Rio de Janeiro|-22.91|-43.17|2;Santiago|-33.45|-70.67|2;Xanthi|41.13|24.89|3;Komotini|41.12|25.40|3;Kavala|40.94|24.41|3;Alexandroupoli|40.85|25.87|3;Drama|41.15|24.15|3;Serres|41.09|23.55|3;Edirne|41.68|26.56|3;Plovdiv|42.14|24.75|3;Burgas|42.50|27.47|3;Kardzhali|41.65|25.37|3;Stara Zagora|42.43|25.63|3;Bursa|40.19|29.06|3;Tekirdağ|40.98|27.51|3;Larissa|39.64|22.42|3;Patras|38.25|21.73|3;Heraklion|35.34|25.13|3;Kimmeria|41.14|24.93|4`.split(';').map(s=>{const p=s.split('|');return{name:p[0],lat:+p[1],lng:+p[2],rank:+p[3]}});
+T.forEach(t=>{const n=t.city.split(',')[0];if(!CITIES.some(c=>c.name===n))CITIES.push({name:n,lat:t.lat,lng:t.lng,rank:3})});
+// name|lat|lng|min zoom|max zoom
+const SEAS=`Atlantic Ocean|32|-42|0|5;Pacific Ocean|5|-140|0|5;Pacific Ocean|22|168|0|5;Indian Ocean|-22|80|0|5;Southern Ocean|-55|20|0|4;Mediterranean Sea|34.6|18.5|2.6|22;Black Sea|43.3|34.3|4|60;Aegean Sea|38.9|25.1|9|90;Thracian Sea|40.55|25.1|22|200;Sea of Marmara|40.68|28.2|24|200;Ionian Sea|37.6|18.6|9|90;Adriatic Sea|43.1|15.1|9|90;North Sea|56.2|3.4|5|60;Baltic Sea|57.2|19.6|6|60;Norwegian Sea|68|4|3|30;Caribbean Sea|15|-75|4|40;Gulf of Mexico|25|-90|4|40;Arabian Sea|15|63|3|30;Bay of Bengal|15|88|3.5|30;Red Sea|20|38.6|6|60;South China Sea|14|114|3.5|30;Caspian Sea|41.8|50.6|6|60`.split(';').map(s=>{const p=s.split('|');return{name:p[0],lat:+p[1],lng:+p[2],min:+p[3],max:+p[4]}});
+
+`Greece:Ioannina|39.67|20.85,Volos|39.36|22.94,Kozani|40.30|21.79,Lamia|38.90|22.43,Chalkida|38.46|23.60,Kalamata|37.04|22.11,Tripoli|37.51|22.37,Chania|35.51|24.02,Rhodes|36.43|28.22,Mytilene|39.10|26.55,Corfu|39.62|19.92,Karystos|38.02|24.42,Florina|40.78|21.41,Orestiada|41.50|26.53,Agrinio|38.62|21.41
+Bulgaria:Ruse|43.85|25.95,Vidin|43.99|22.88,Dobrich|43.57|27.83,Kavarna|43.43|28.34,Smolyan|41.58|24.70,Pleven|43.42|24.62,Sliven|42.68|26.32,Blagoevgrad|42.02|23.10
+Türkiye:Balıkesir|39.65|27.88,Manisa|38.61|27.43,Antalya|36.90|30.70,Mersin|36.80|34.63,Konya|37.87|32.48,Samsun|41.29|36.33,Trabzon|41.00|39.72,Gaziantep|37.07|37.38,Hatay|36.20|36.16,Erzurum|39.90|41.27,Kırklareli|41.73|27.22,Kayseri|38.72|35.49,Adana|37.00|35.32
+Romania:Tulcea|45.18|28.80,Iași|47.16|27.59,Cluj-Napoca|46.77|23.60,Timișoara|45.76|21.23,Craiova|44.32|23.80,Galați|45.44|28.05,Brașov|45.65|25.60
+Serbia:Novi Sad|45.25|19.85,Niš|43.32|21.90
+Croatia:Zagreb|45.81|15.98,Split|43.51|16.44
+Austria:Graz|47.07|15.44
+Germany:Kiel|54.32|10.14,Bremen|53.08|8.80,Hanover|52.37|9.73,Rostock|54.09|12.13,Magdeburg|52.13|11.63,Cologne|50.94|6.96,Frankfurt|50.11|8.68,Leipzig|51.34|12.37,Mainz|50.00|8.27,Stuttgart|48.78|9.18,Munich|48.14|11.58,Emden|53.37|7.21,Cuxhaven|53.87|8.70
+United Kingdom:Inverness|57.48|-4.22,Glasgow|55.86|-4.25,Newcastle|54.98|-1.61,Leeds|53.80|-1.55,Manchester|53.48|-2.24,Cardiff|51.48|-3.18,Norwich|52.63|1.30,Plymouth|50.38|-4.14,Belfast|54.60|-5.93,Grimsby|53.57|-0.08,Great Yarmouth|52.61|1.73
+Ireland:Cork|51.90|-8.47,Galway|53.27|-9.05,Letterkenny|54.95|-7.73
+Spain:A Coruña|43.36|-8.41,Valladolid|41.65|-4.72,Pamplona|42.81|-1.64,Bilbao|43.26|-2.93,Valencia|39.47|-0.38,Seville|37.39|-5.99,Albacete|39.00|-1.86,Las Palmas|28.12|-15.43
+Portugal:Coimbra|40.21|-8.43,Évora|38.57|-7.91,Faro|37.02|-7.93,Viana do Castelo|41.69|-8.83
+Italy:Bari|41.12|16.87,Taranto|40.47|17.24,Palermo|38.12|13.36,Cagliari|39.22|9.12,Potenza|40.64|15.80,Catanzaro|38.91|16.59,Florence|43.77|11.25,Bologna|44.49|11.34,Turin|45.07|7.69
+France:Lille|50.63|3.06,Rouen|49.44|1.10,Rennes|48.11|-1.68,Strasbourg|48.58|7.75,Bordeaux|44.84|-0.58,Lyon|45.76|4.84,Toulouse|43.60|1.44,Marseille|43.30|5.37,Saint-Nazaire|47.27|-2.21
+Netherlands:Groningen|53.22|6.57,Rotterdam|51.92|4.48,Eemshaven|53.44|6.83
+Denmark:Aalborg|57.05|9.92,Aarhus|56.16|10.20,Odense|55.40|10.39
+Sweden:Malmö|55.60|13.00,Sundsvall|62.39|17.31,Luleå|65.58|22.15
+Norway:Stavanger|58.97|5.73,Trondheim|63.43|10.40,Tromsø|69.65|18.96
+Finland:Helsinki|60.17|24.94,Oulu|65.01|25.47,Rovaniemi|66.50|25.73
+Poland:Szczecin|53.43|14.55,Poznań|52.41|16.93,Łódź|51.76|19.46,Katowice|50.26|19.02,Kraków|50.06|19.94
+United States:Abilene|32.45|-99.73,Amarillo|35.22|-101.83,Oklahoma City|35.47|-97.52,Minneapolis|44.98|-93.27,Bismarck|46.81|-100.78,Denver|39.74|-104.99,Cheyenne|41.14|-104.82,Bakersfield|35.37|-119.02,San Francisco|37.77|-122.42,Portland|45.52|-122.68,Albany|42.65|-73.76,Charlotte|35.23|-80.84,New Orleans|29.95|-90.07,Indianapolis|39.77|-86.16
+Canada:Edmonton|53.55|-113.49,Regina|50.45|-104.62,Montreal|45.50|-73.57,Halifax|44.65|-63.58
+Mexico:Juchitán|16.43|-95.02,Monterrey|25.69|-100.32,Mérida|20.97|-89.62,Mexicali|32.62|-115.45
+Brazil:Natal|-5.79|-35.21,Salvador|-12.97|-38.50,Porto Alegre|-30.03|-51.23,Manaus|-3.12|-60.02,Belo Horizonte|-19.92|-43.94
+Argentina:Comodoro Rivadavia|-45.86|-67.50,Bahía Blanca|-38.72|-62.27,Córdoba|-31.42|-64.18,Salta|-24.78|-65.41
+Chile:Antofagasta|-23.65|-70.40,Concepción|-36.83|-73.05
+Egypt:Alexandria|31.20|29.92,Aswan|24.09|32.90,Ras Ghareb|28.36|33.08
+Morocco:Marrakesh|31.63|-8.00,Laayoune|27.15|-13.20,Rabat|34.02|-6.84
+Nigeria:Abuja|9.06|7.49,Port Harcourt|4.82|7.03,Kano|12.00|8.52
+Kenya:Mombasa|-4.04|39.67,Lodwar|3.12|35.60
+South Africa:Durban|-29.86|31.03,Upington|-28.45|21.25,East London|-33.02|27.91
+Saudi Arabia:Riyadh|24.71|46.68,Dammam|26.43|50.10,Jeddah|21.49|39.19,Tabuk|28.38|36.57
+United Arab Emirates:Abu Dhabi|24.45|54.38
+India:Coimbatore|11.02|76.96,Ahmedabad|23.02|72.57,Pune|18.52|73.86,Bengaluru|12.97|77.59,Jaisalmer|26.92|70.91,Hyderabad|17.39|78.49
+China:Guangzhou|23.13|113.26,Hohhot|40.84|111.75,Ürümqi|43.83|87.62,Nanjing|32.06|118.80
+Japan:Sapporo|43.06|141.35,Osaka|34.69|135.50,Fukuoka|33.59|130.40
+South Korea:Busan|35.18|129.08,Gwangju|35.16|126.85
+Vietnam:Hanoi|21.03|105.85,Phan Rang|11.57|108.99
+Australia:Brisbane|-27.47|153.03,Adelaide|-34.93|138.60,Perth|-31.95|115.86,Hobart|-42.88|147.33,Ballarat|-37.56|143.85`.split('\n').forEach(l=>{const i=l.indexOf(':'),co=l.slice(0,i);l.slice(i+1).split(',').forEach(r=>{const p=r.split('|');if(!CITIES.some(c=>c.name===p[0]))CITIES.push({name:p[0],lat:+p[1],lng:+p[2],rank:3,country:co})})});
+// dates
+const now=new Date(), mon=new Date(now); mon.setDate(now.getDate()+((8-now.getDay())%7||7));
+const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const addW=(d,w)=>{const x=new Date(d);x.setDate(x.getDate()+7*w);return x};
+const addM=m=>{const x=new Date(now);x.setMonth(x.getMonth()+m);return x};
+const aClass=t=>t.free===0?'now':t.free<=4?'soon':'later';
+const aText=t=>t.free===0?'Available now':'Free from '+fmt(addW(mon,t.free));
+const nf=n=>Math.round(n).toLocaleString('en-GB');
+const av=(t,big)=>`<span class="av${big?' big':''} ${aClass(t)}"${t.photo&&vis(t)?` style="background-image:url('${t.photo}')"`:''}>${t.photo&&vis(t)?'':esc(vis(t)?initials(t):'?')}</span>`;
+const initials=t=>t.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const short=s=>s.split(',')[0];
+function hav(a,b){const R=6371,r=Math.PI/180,dLa=(b.lat-a.lat)*r,dLo=(b.lng-a.lng)*r,x=Math.sin(dLa/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function certsBase(t){
+  const mo=d=>Math.floor((d-now)/2.63e9);
+  if(t.certList)return t.certList.map(c=>{const e=c.exp?new Date(c.exp):null;return{n:c.type,g:c.type.startsWith('GWO')?1:0,exp:e,m:e?mo(e):99,ver:false,issuer:c.issuer||'',issued:c.issued?new Date(c.issued):null,no:c.no||''}});
+  const base=t.sector==='wind'?[{n:'GWO BST: Working at Heights, First Aid, Manual Handling, Fire Awareness',g:1}]:SECTORS[t.sector].certs.slice(0,2+t.id%2).map(n=>({n,g:0}));
+  if(t.sector==='wind')t.skills.forEach(s=>base.push({n:CERT[s]+(s==='rope'?' Level '+(1+t.id%3):''),g:CERT[s].startsWith('GWO')?1:0}));
+  return base.map((c,j)=>{const m=((t.id*7+j*5)%23)-1,exp=addM(m),issued=new Date(exp);issued.setFullYear(issued.getFullYear()-2);
+    return{...c,exp,m,ver:(t.id+j)%5!==0,issued,issuer:c.g?'GWO-certified training provider':c.n.startsWith('IRATA')?'IRATA member company':'Accredited body, '+t.country,no:(c.g?'GWO':'CERT')+'-'+((t.id*7919+j*104729)%900000+100000)}});
+}
+const allVerified=t=>!t.pending&&certs(t).every(c=>c.ver&&c.m>=0);
+
+// state
+const F={minLvl:1,sector:'wind',prof:'all',skills:new Set(['blade']),radius:300,avail:'any',sort:'dist'};
+let site={name:'Kimmeria, Greece',lat:41.14,lng:24.93}, area=null, sel=null, list=[], inR=[], picking=false;
+
+// ---------- controls
+// ---------- project location: country -> region -> town, or a point picked on the map
+const REG={};
+`Greece:East Macedonia & Thrace|41.1|24.9,Central Macedonia|40.7|22.9,West Macedonia|40.4|21.6,Epirus|39.6|20.8,Thessaly|39.5|22.2,Central Greece|38.6|22.8,Attica|38.0|23.7,Western Greece|38.3|21.6,Peloponnese|37.4|22.3,Ionian Islands|38.7|20.6,North Aegean|39.1|26.3,South Aegean|36.8|25.9,Crete|35.2|24.9
+Bulgaria:Sofia region|42.7|23.3,Plovdiv & Upper Thrace|42.1|24.8,Stara Zagora|42.4|25.6,Rhodopes (Kardzhali–Smolyan)|41.6|25.0,Burgas & south coast|42.5|27.4,Varna & Dobrudzha|43.3|27.8,Ruse & Danube plain|43.6|25.8,North-west (Vidin–Montana)|43.6|23.0
+Türkiye:Thrace (Edirne–Tekirdağ)|41.3|27.0,Istanbul|41.0|29.0,Çanakkale|40.1|26.6,South Marmara (Bursa–Balıkesir)|40.0|28.4,Aegean (Izmir–Manisa)|38.5|27.3,Mediterranean (Antalya–Mersin)|36.9|32.5,Central Anatolia (Ankara–Konya)|39.2|33.0,Black Sea (Samsun–Trabzon)|41.1|37.0,South-east (Gaziantep–Hatay)|37.0|37.4,Eastern Anatolia|39.5|41.5
+Romania:Dobrogea (Constanța–Tulcea)|44.5|28.5,Bucharest & Muntenia|44.5|26.1,Moldavia|46.8|27.2,Transylvania|46.6|24.5,Banat & Crișana|45.9|21.6,Oltenia|44.5|23.6
+Serbia:Belgrade|44.8|20.5,Vojvodina|45.3|20.4,South & east|43.4|21.9
+North Macedonia:Skopje|42.0|21.4,East (Štip–Bogdanci)|41.5|22.3,West (Bitola–Ohrid)|41.1|21.1
+Albania:Tirana & Durrës|41.3|19.7,North (Shkodër)|42.0|19.6,South (Vlorë–Korçë)|40.5|20.0
+Croatia:Dalmatia|43.7|16.3,Zagreb & central|45.8|16.0,Slavonia|45.4|18.2
+Germany:Schleswig-Holstein|54.3|9.6,Hamburg|53.55|10.0,Lower Saxony & Bremen|52.9|9.0,Mecklenburg-Vorpommern|53.8|12.5,Brandenburg & Berlin|52.4|13.5,Saxony-Anhalt|52.0|11.7,North Rhine-Westphalia|51.5|7.5,Hesse|50.6|9.0,Saxony & Thuringia|50.9|12.3,Rhineland-Palatinate & Saarland|49.9|7.3,Baden-Württemberg|48.6|9.0,Bavaria|48.9|11.5
+Austria:Lower Austria & Vienna|48.3|16.2,Burgenland|47.6|16.6,Styria|47.2|15.2
+United Kingdom:Highlands & Islands|57.5|-4.5,North-east Scotland (Aberdeen)|57.2|-2.3,Central Scotland|55.9|-3.8,North-east England|54.9|-1.6,Yorkshire & Humber|53.8|-0.9,North-west England|53.8|-2.7,Wales|52.3|-3.7,East of England|52.5|0.9,South-west England|50.8|-3.6,London & South-east|51.4|0.0,Northern Ireland|54.6|-6.7
+Ireland:Dublin & east|53.3|-6.5,Cork & south-west|51.9|-9.0,Galway & west|53.5|-9.0,Donegal & north-west|54.8|-8.0,Midlands|53.3|-7.7
+Spain:Galicia|42.8|-8.0,Castile and León|41.8|-4.5,Navarre & Basque Country|42.8|-2.0,Aragon|41.6|-0.9,Catalonia|41.8|1.6,Madrid|40.4|-3.7,Castilla-La Mancha|39.4|-3.0,Valencia & Murcia|38.8|-0.8,Andalusia|37.4|-4.6,Canary Islands|28.3|-15.8
+Portugal:North (Porto–Viana)|41.5|-8.2,Centre (Coimbra–Viseu)|40.3|-8.0,Lisbon & Tagus|38.9|-9.0,Alentejo|38.3|-7.9,Algarve|37.2|-8.2
+Italy:Lombardy & Piedmont|45.4|9.0,Veneto & Emilia-Romagna|45.0|11.6,Tuscany & Umbria|43.3|11.5,Lazio & Abruzzo|42.0|13.2,Campania & Basilicata|40.7|15.4,Apulia|41.0|16.5,Calabria|39.0|16.5,Sicily|37.6|14.1,Sardinia|40.1|9.0
+France:Hauts-de-France|49.9|2.8,Normandy|49.1|0.1,Brittany|48.2|-2.9,Paris region|48.8|2.4,Grand Est|48.7|5.6,Pays de la Loire|47.4|-0.8,Nouvelle-Aquitaine|45.2|0.2,Auvergne-Rhône-Alpes|45.5|4.5,Occitanie|43.7|2.2,Provence & Côte d'Azur|43.9|6.0
+Netherlands:North (Groningen–Friesland)|53.1|6.2,Flevoland & east|52.4|5.9,Randstad|52.1|4.6,Zeeland & south|51.4|4.6
+Denmark:West Jutland (Esbjerg)|55.6|8.6,North Jutland (Aalborg)|57.0|9.9,East Jutland (Aarhus)|56.1|10.0,Funen|55.3|10.4,Zealand & Copenhagen|55.5|11.9
+Sweden:Skåne|55.9|13.6,Västra Götaland (Gothenburg)|58.0|12.5,Stockholm & Mälardalen|59.4|17.5,South Norrland|62.5|16.5,North Norrland|66.0|20.0
+Norway:Rogaland & south-west|58.9|6.2,Oslo & east|60.0|10.8,Trøndelag|63.8|11.0,Northern Norway|68.8|17.0
+Finland:Helsinki & south|60.5|25.0,Ostrobothnia|63.5|24.0,Lapland|67.5|26.0
+Poland:Pomerania (Gdańsk)|54.2|18.0,West Pomerania (Szczecin)|53.6|15.5,Greater Poland (Poznań)|52.3|17.2,Masovia (Warsaw)|52.3|21.0,Łódź region|51.6|19.4,Silesia|50.6|18.5,Lesser Poland (Kraków)|49.9|20.3
+United States:Texas|31.5|-99.3,Oklahoma & Kansas|37.0|-98.0,Iowa & Midwest|42.0|-93.5,Dakotas & Minnesota|46.0|-98.5,Illinois & Indiana|40.3|-88.5,Colorado & Wyoming|41.0|-105.5,California|36.5|-119.5,Pacific North-west|46.0|-120.5,New York & North-east|42.8|-75.5,South-east (Carolinas–Georgia)|34.0|-81.0,Gulf Coast (Louisiana)|30.3|-91.5
+Canada:British Columbia|51.0|-122.0,Alberta|52.5|-113.5,Saskatchewan & Manitoba|51.0|-103.0,Ontario|44.5|-79.5,Quebec|47.5|-71.5,Atlantic provinces|46.0|-63.5
+Mexico:Baja California|31.5|-115.5,Tamaulipas & Nuevo León|25.2|-98.8,Central (Mexico City–Puebla)|19.3|-98.8,Oaxaca (Isthmus)|16.6|-95.0,Yucatán|20.7|-89.0
+Brazil:Amazon & north|-3.0|-60.0,Ceará & Rio Grande do Norte|-5.0|-38.0,Bahia|-12.5|-41.5,Rio de Janeiro & Minas Gerais|-21.0|-43.8,São Paulo|-23.0|-47.5,Rio Grande do Sul|-30.3|-53.0
+Argentina:North-west|-25.5|-65.5,Córdoba & centre|-32.0|-64.0,Buenos Aires province|-37.0|-60.0,Patagonia (Chubut–Santa Cruz)|-44.5|-67.5
+Chile:Antofagasta & north|-23.6|-69.8,Santiago & centre|-33.5|-70.7,Biobío & south|-37.5|-72.5
+Egypt:Alexandria & north coast|31.0|29.5,Cairo & Delta|30.3|31.2,Red Sea coast (Gulf of Suez)|28.0|33.3,Upper Egypt (Aswan)|24.5|32.8
+Morocco:Tangier & north|35.4|-5.6,Casablanca & Rabat|33.7|-7.2,Marrakesh & centre|31.7|-7.9,Southern provinces (Tarfaya–Laayoune)|27.6|-12.5
+Nigeria:Lagos & south-west|6.8|3.6,Niger Delta|5.0|6.5,Abuja & centre|9.1|7.5,North (Kano–Kaduna)|11.5|8.3
+Kenya:Nairobi & centre|-1.2|36.9,Turkana & north|3.0|36.0,Coast (Mombasa)|-3.8|39.5
+South Africa:Western Cape|-33.5|19.5,Eastern Cape|-33.0|26.0,Northern Cape|-29.5|21.5,Gauteng|-26.0|28.1,KwaZulu-Natal|-29.0|30.5
+Saudi Arabia:Riyadh|24.7|46.7,Eastern Province|26.3|49.8,Makkah & Jeddah|21.5|39.8,Tabuk & north-west|28.2|35.5
+United Arab Emirates:Abu Dhabi|24.2|54.4,Dubai & northern emirates|25.2|55.5
+India:Delhi & north|28.6|77.2,Rajasthan|26.8|73.0,Gujarat|22.5|71.5,Maharashtra|19.0|75.5,Karnataka|14.8|76.0,Andhra Pradesh & Telangana|16.5|79.5,Tamil Nadu|11.0|78.5
+China:Beijing & Hebei|39.9|116.4,Inner Mongolia|41.5|111.5,Xinjiang|43.5|87.5,Shanghai & Jiangsu|31.8|120.5,Guangdong|23.2|113.5
+Japan:Hokkaidō|43.3|142.5,Tōhoku (Akita–Aomori)|39.8|140.5,Kantō (Tokyo)|35.9|139.8,Kansai (Osaka)|34.8|135.6,Kyūshū|32.8|130.9
+South Korea:Seoul & Gyeonggi|37.5|127.0,Jeolla (south-west)|35.2|126.8,Gyeongsang (Busan–Ulsan)|35.6|129.0
+Vietnam:Hanoi & north|21.0|105.8,Central coast (Ninh Thuận)|12.0|108.8,Ho Chi Minh City & south|10.8|106.7
+Australia:Queensland|-24.0|148.5,New South Wales|-33.0|148.0,Victoria|-37.0|144.5,Tasmania|-42.0|146.5,South Australia|-33.5|138.0,Western Australia|-31.0|117.5
+Belgium:Flanders|51.0|4.2,Brussels|50.85|4.35,Wallonia|50.3|5.0
+Switzerland:German-speaking (Zürich–Bern)|47.2|8.2,Romandy (Geneva–Lausanne)|46.5|6.6,Ticino|46.2|8.9
+Czechia:Bohemia (Prague)|50.0|14.4,Moravia (Brno–Ostrava)|49.4|17.2
+Hungary:Budapest & centre|47.5|19.1,Transdanubia (Győr)|47.3|17.8,Great Plain (Debrecen–Szeged)|46.9|20.8
+Ukraine:Kyiv & centre|50.4|30.5,West (Lviv)|49.8|24.0,South (Odesa)|46.5|30.7
+Lithuania:Vilnius & east|54.7|25.3,Klaipėda & coast|55.7|21.3
+Latvia:Riga & centre|56.9|24.1,Kurzeme (west coast)|56.8|21.8
+Estonia:Tallinn & north|59.3|24.8,Pärnu & west|58.4|24.0
+Cyprus:Nicosia|35.17|33.36,Limassol & Paphos|34.75|32.8,Larnaca|34.92|33.6
+Israel:Haifa & north|32.8|35.2,Tel Aviv & centre|32.1|34.8,Negev & south|30.8|34.8
+Tunisia:Tunis & north|36.8|10.2,Sfax & centre|34.7|10.7
+Kazakhstan:Astana & north|51.2|71.4,Almaty & south|43.3|76.9,Caspian west (Atyrau–Aktau)|45.5|52.0
+Pakistan:Islamabad & north|33.7|73.0,Punjab (Lahore)|31.2|73.5,Sindh (Karachi–Jhimpir)|25.2|67.8
+Thailand:Bangkok & centre|13.8|100.6,North-east (Isan)|15.8|102.5,South|8.5|99.5
+Philippines:Luzon (Manila–Ilocos)|15.5|120.9,Visayas|10.7|123.2,Mindanao|7.8|125.0
+Indonesia:Sumatra|-0.5|101.5,Java|-7.3|110.0,Kalimantan|-1.0|114.0,Sulawesi|-3.5|120.0
+New Zealand:North Island|-38.5|176.0,South Island|-44.0|170.5
+Colombia:Caribbean coast (La Guajira)|11.0|-73.5,Antioquia (Medellín)|6.5|-75.5,Bogotá & centre|4.7|-74.1
+Peru:North (Piura)|-5.2|-80.6,Lima & coast|-12.0|-77.0,South (Arequipa)|-16.4|-71.5
+Uruguay:North (Tacuarembó)|-31.7|-56.0,Montevideo & south|-34.7|-56.2`.split('\n').forEach(l=>{const i=l.indexOf(':');REG[l.slice(0,i)]=l.slice(i+1).split(',').map(r=>{const p=r.split('|');return{name:p[0],lat:+p[1],lng:+p[2]}})});
+const COUNTRIES={}, mean=(a,f)=>a.reduce((s,x)=>s+f(x),0)/a.length;
+Object.keys(REG).forEach(n=>COUNTRIES[n]={name:n,lat:mean(REG[n],r=>r.lat),lng:mean(REG[n],r=>r.lng)});
+T.forEach(t=>{if(!COUNTRIES[t.country]){const a=T.filter(x=>x.country===t.country);COUNTRIES[t.country]={name:t.country,lat:mean(a,x=>x.lat),lng:mean(a,x=>x.lng)}}});
+const optv=(v,l,sel)=>`<option value="${esc(v)}"${sel?' selected':''}>${esc(l)}</option>`;
+function fillCountries(cur){$('ctrySel').innerHTML=optv('','Choose a country')+Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b)).map(n=>optv(n,n,n===cur)).join('')}
+function fillRegions(c,cur){const r=REG[c]||[];$('regSel').innerHTML=optv('',c?(r.length?'Whole country':'Whole country (no regions listed)'):'Choose a country first')+r.map((x,i)=>optv(i,x.name,i===cur)).join('');$('regSel').disabled=!r.length}
+function fillTowns(r,cur){const near=r?CITIES.map(c=>({c,d:hav(r,c)})).filter(x=>x.d<130&&(!x.c.country||x.c.country===$('ctrySel').value)).sort((a,b)=>a.d-b.d).map(x=>x.c):[];
+  $('townSel').innerHTML=optv('',r?(near.length?'Region centre':'Region centre (no towns listed)'):'Choose a region first')+near.map(c=>optv(c.name,c.name,c.name===cur)).join('');$('townSel').disabled=!near.length}
+function inArea(t){return t.country===area.name||!!(area.full&&window.d3&&d3.geoContains(area.full,[t.lng,t.lat]))}
+function selectCountry(n){
+  if(!COUNTRIES[n])return; area=COUNTRIES[n]; site={name:n,lat:area.lat,lng:area.lng};
+  fillCountries(n);fillRegions(n);fillTowns(null);$('siteNote').textContent=`Showing everyone based in ${n}. Choose a region to search by distance.`;update();fly();
+}
+function selectRegion(i){
+  const c=$('ctrySel').value, r=(REG[c]||[])[i]; if(!r)return selectCountry(c);
+  area=null; site={name:`${r.name}, ${c}`,lat:r.lat,lng:r.lng}; fillTowns(r);$('siteNote').textContent='Searching by distance from the centre of this region.';update();fly();
+}
+function selectTown(n){
+  const c=$('ctrySel').value, city=CITIES.find(x=>x.name===n); if(!city)return selectRegion(+$('regSel').value);
+  area=null; site={name:`${n}, ${c}`,lat:city.lat,lng:city.lng};$('siteNote').textContent=`Searching by distance from ${n}.`;update();fly();
+}
+function customSite(name,lat,lng,country){
+  area=null; site={name,lat,lng};
+  if(!country&&window.d3)country=(Object.values(COUNTRIES).find(c=>c.full&&d3.geoContains(c.full,[lng,lat]))||{}).name;
+  fillCountries(country||'');fillRegions(country||'');fillTowns(null);$('siteNote').textContent=`Searching by distance from ${name}.`;
+}
+{const r=REG.Greece[0];fillCountries('Greece');fillRegions('Greece',0);fillTowns(r,'Kimmeria');$('siteNote').textContent='Searching by distance from Kimmeria.'}
+$('ctrySel').addEventListener('change',e=>{if(e.target.value)selectCountry(e.target.value)});
+$('regSel').addEventListener('change',e=>e.target.value===''?selectCountry($('ctrySel').value):selectRegion(+e.target.value));
+$('townSel').addEventListener('change',e=>selectTown(e.target.value));
+function registerCountries(feats){
+  feats.forEach(f=>{const n0=f.properties&&f.properties.name;if(!n0)return;const n=RENAME[n0]||n0;
+    const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;let best=null,ba=-1;
+    polys.forEach(c=>{const pg={type:'Polygon',coordinates:c},a=d3.geoArea(pg);if(a>ba){ba=a;best=pg}});
+    const c=d3.geoCentroid(best);COUNTRIES[n]={name:n,lat:c[1],lng:c[0],feat:best,full:f}});
+  if(area&&COUNTRIES[area.name])area=COUNTRIES[area.name];
+  fillCountries($('ctrySel').value);
+}
+function chipRow(el,set,getItems,onchange){
+  const draw=()=>{const it=getItems();el.innerHTML=Object.keys(it).map(k=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${set.has(k)}">${esc(it[k])}</button>`).join('')};
+  el.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const k=b.dataset.k;set.has(k)?set.delete(k):set.add(k);b.setAttribute('aria-pressed',set.has(k));onchange&&onchange()});
+  draw(); return draw;
+}
+const drawSkillChips=chipRow($('skillChips'),F.skills,()=>F.sector==='all'?{}:SECTORS[F.sector].skills,update);
+const regSkills=new Set(), drawRegSkills=chipRow($('rgSkills'),regSkills,()=>(SECTORS[$('rgSector').value]||SECTORS.wind).skills);
+$('sectorSel').innerHTML='<option value="all">All trades</option>'+Object.entries(SECTORS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
+function setSector(k){
+  F.sector=k;F.prof='all';F.skills.clear();$('sectorSel').value=k;
+  $('profSel').innerHTML='<option value="all">All professions</option>'+(k==='all'?[]:SECTORS[k].profs).map(p=>`<option>${esc(p)}</option>`).join('');
+  $('profSel').disabled=k==='all';$('skillBlock').hidden=k==='all';drawSkillChips();
+}
+setSector('wind');F.skills.add('blade');drawSkillChips();
+$('sectorSel').addEventListener('change',e=>{setSector(e.target.value);update()});
+$('profSel').addEventListener('change',e=>{F.prof=e.target.value;update()});
+$('lvlSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F.minLvl=+b.dataset.v;$('lvlSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));update()});
+function setAvail(v){F.avail=v;$('availSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))}
+$('availSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b){setAvail(b.dataset.v);update()}});
+
+$('radius').addEventListener('input',e=>{F.radius=+e.target.value;update()});
+$('radius').addEventListener('change',fly);
+$('sortSel').addEventListener('change',e=>{F.sort=e.target.value;update()});
+$('pickBtn').addEventListener('click',()=>setPick(!picking));
+function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map').classList.toggle('pick',v);if(v)toast('Click the map where your project is.')}
+
+
+// ---------- results
+function matches(t){return !A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
+function update(){
+  syncVer(); regBtn();
+  list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=area?inArea(t):t.dist<=F.radius}); list.sort((a,b)=>a.dist-b.dist);
+  inR=list.filter(t=>t.in);
+  if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>b.years-a.years||a.dist-b.dist);
+  inR.sort((a,b)=>isVer(b)-isVer(a));
+  $('mstats').textContent=`${T.length} professionals in ${new Set(T.map(t=>t.country)).size} countries`;
+  $('radiusOut').textContent=area?'whole country':nf(F.radius)+' km'; $('radius').disabled=!!area;
+  const sk=[...F.skills].map(k=>SK[k]).join(' + ')||(F.prof!=='all'?F.prof:F.sector==='all'?'All trades':SECTORS[F.sector].name);
+  $('rTitle').textContent=`${inR.length} ${inR.length===1?'person':'people'} ${area?'in '+area.name:'within '+nf(F.radius)+' km'}`;
+  $('rSub').textContent=`${sk} · ${area?'whole country':short(site.name)}`;
+  $('rList').innerHTML=inR.map(t=>`<li><button type="button" class="ritem${t.id===sel?' on':''}" data-id="${t.id}">
+    ${av(t)}
+    <span class="rname">${esc(dn(t))}</span><span class="rdist">${area?'':nf(t.dist)+' km'}</span>
+    <span class="rsub">${esc(t.prof)} · ${esc(t.city)}, ${esc(t.country)}</span>
+    <span class="rmeta"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${isVer(t)?'<span class="tag ok">Verified</span>':''}${t.skills.slice(0,3).map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${SK[s]}</span>`).join('')}</span></button></li>`).join('');
+  const em=$('rEmpty'); em.hidden=inR.length>0;
+  if(!inR.length){const n=list[0];
+    em.innerHTML=area?`<p>Nobody matching is registered in ${esc(area.name)} yet.${n?` The nearest match is ${esc(n.name)} in ${esc(n.city)}, ${esc(n.country)}.`:''} Choose a region to search across borders by distance.</p>`:n?`<p>Nobody matches inside this radius. The nearest match is ${esc(n.name)} in ${esc(n.city)}, ${nf(n.dist)} km away.</p><button type="button" class="btn small" id="widen">Widen radius to ${nf(Math.min(3000,Math.ceil(n.dist/50)*50))} km</button>`
+      :`<p>Nobody registered matches this trade, skill and availability yet. Remove a skill or widen the choice.</p>`;}
+  lockedList();
+  drawGeo();
+}
+$('rList').addEventListener('click',e=>{const b=e.target.closest('.ritem');if(b)openProfile(+b.dataset.id)});
+$('rEmpty').addEventListener('click',e=>{if(e.target.id==='widen'&&list[0]){F.radius=Math.min(3000,Math.ceil(list[0].dist/50)*50);$('radius').value=F.radius;update();fly()}});
+
+// ---------- map
+const hasD3=!!window.d3, still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wrap=$('mapwrap'), BASE=960/(2*Math.PI);
+let vw=wrap.clientWidth||800, vh=wrap.clientHeight||600, tr={k:1,x:0,y:0}, B=[[0,95],[960,560]];
+let gArea,svg,g,proj,path,zoom,gBase,gRing,gLink,gLab,gRingLab,gPins,gSite,LABELS=[],countryLabels=[];
+const P=o=>proj([o.lng,o.lat]);
+let clusters=[];
+const ATLAS='https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json', DM='https://cdnjs.cloudflare.com/ajax/libs/datamaps/0.5.9/';
+const within=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>no(new Error('timeout')),ms))]);
+const loadScript=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+const isAnt=o=>o.id==='ATA'||o.id==='010'||(o.properties&&o.properties.name==='Antarctica');
+const RENAME={'United States of America':'United States','Russian Federation':'Russia','Turkey':'Türkiye','Macedonia':'North Macedonia','Czech Republic':'Czechia','Bosnia and Herz.':'Bosnia & Herz.','Bosnia and Herzegovina':'Bosnia & Herz.','Dem. Rep. Congo':'DR Congo','Democratic Republic of the Congo':'DR Congo','United Republic of Tanzania':'Tanzania','Republic of Serbia':'Serbia'};
+
+const dur=ms=>still?0:ms;
+if(hasD3){
+  proj=d3.geoMercator().scale(BASE).translate([480,330]); path=d3.geoPath(proj);
+  svg=d3.select('#map'); g=svg.append('g'); const ov=svg.append('g');
+  gBase=g.append('g'); gBase.append('path').attr('class','grat').attr('d',path(d3.geoGraticule().step([10,10]).extent([[-180,-70],[180,84]])()));
+  gArea=g.append('path').attr('class','ring solid'); gRing=g.append('path').attr('class','ring'); gLink=g.append('path').attr('class','link');
+  gLab=ov.append('g'); gRingLab=ov.append('text').attr('class','ringlab'); gSite=ov.append('g').attr('class','site'); gPins=ov.append('g');
+  gSite.append('path').attr('d','M0,0 C-3,-7 -9,-11 -9,-17 A9,9 0 1 1 9,-17 C9,-11 3,-7 0,0 Z'); gSite.append('circle').attr('cy',-17).attr('r',3.4); gSite.append('text').attr('x',13).attr('y',-13);
+  zoom=d3.zoom().on('zoom',e=>{tr=e.transform;g.attr('transform',tr);overlay()});
+  svg.call(zoom).on('dblclick.zoom',null);
+  svg.on('click',e=>{ if(!picking)return; const ll=proj.invert(tr.invert(d3.pointer(e,svg.node())));
+    customSite(`Picked point ${ll[1].toFixed(2)}° / ${ll[0].toFixed(2)}°`,ll[1],ll[0]); setPick(false); update(); fly(); });
+  $('zin').onclick=()=>svg.transition().duration(dur(250)).call(zoom.scaleBy,1.8);
+  $('zout').onclick=()=>svg.transition().duration(dur(250)).call(zoom.scaleBy,1/1.8);
+  $('zworld').onclick=()=>svg.transition().duration(dur(700)).call(zoom.transform,fit(B,.98));
+  $('zsite').onclick=fly;
+  setExtent(); buildLabels();
+  if(window.ResizeObserver)new ResizeObserver(()=>{const w=wrap.clientWidth,h=wrap.clientHeight;if(!w||!h||(w===vw&&h===vh))return;vw=w;vh=h;setExtent();overlay()}).observe(wrap);
+  loadTopo().then(drawBase);
+}else{ $('mapLoading').textContent='The map could not load. Search and results still work.'; }
+
+function setExtent(){
+  const bw=B[1][0]-B[0][0], bh=B[1][1]-B[0][1];
+  zoom.extent([[0,0],[vw,vh]]).scaleExtent([Math.min(vw/bw,vh/bh)*.9,220]).translateExtent([[B[0][0]-60,B[0][1]-60],[B[1][0]+60,B[1][1]+60]]);
+}
+function fit(b,pad,minW){ // transform that fits base-coordinate bounds b into the visible map area
+  const sheetW=(!$('sheet').hidden&&innerWidth>860)?Math.min(440,vw):0, w=Math.max(200,vw-sheetW);
+  const dx=Math.max(b[1][0]-b[0][0],minW||.01), dy=Math.max(b[1][1]-b[0][1],minW||.01);
+  const s=Math.min(220,pad*Math.min(w/dx,vh/dy));
+  return d3.zoomIdentity.translate(w/2,vh/2).scale(s).translate(-(b[0][0]+b[1][0])/2,-(b[0][1]+b[1][1])/2);
+}
+function ringGeo(){return d3.geoCircle().center([site.lng,site.lat]).radius(F.radius/6371*180/Math.PI).precision(1.5)()}
+function fly(){ if(!hasD3)return; svg.transition().duration(dur(750)).call(zoom.transform,area&&area.feat?fit(path.bounds(area.feat),.86):fit(path.bounds(ringGeo()),.8)); }
+
+async function loadTopo(){
+  if(!window.topojson)return null;
+  try{const m=await within(import(ATLAS,{with:{type:'json'}}),15000);const t=m&&m.default;if(t&&t.objects&&t.objects.countries)return{topo:t,obj:t.objects.countries}}catch(e){}
+  for(const f of ['datamaps.world.hires.min.js','datamaps.world.min.js']){
+    try{await within(loadScript(DM+f),15000);const t=window.Datamap&&Datamap.prototype.worldTopo;if(t&&t.objects&&t.objects.world)return{topo:t,obj:t.objects.world}}catch(e){}
+  }
+  return null;
+}
+function drawBase(d){
+  if(!d){$('mapLoading').textContent='Country outlines could not load. Pins and distances are still correct.';return}
+  try{
+    const feats=topojson.feature(d.topo,d.obj).features.filter(f=>!isAnt(f)&&f.geometry);
+    const coast=path(topojson.mesh(d.topo,d.obj,(a,b)=>a===b&&!isAnt(a)));
+    gBase.append('path').attr('class','halo').attr('d',coast);
+    gBase.append('g').selectAll('path').data(feats).join('path').attr('class','land').attr('d',path).on('click',(e,f)=>{const n=f.properties&&(RENAME[f.properties.name]||f.properties.name);if(picking||tr.k>=5||!COUNTRIES[n])return;selectCountry(n);toast('Showing '+n+'. Choose a region to search by distance.')});
+    registerCountries(feats);
+    gBase.append('path').attr('class','border').attr('d',path(topojson.mesh(d.topo,d.obj,(a,b)=>a!==b&&!isAnt(a)&&!isAnt(b))));
+    gBase.append('path').attr('class','coast').attr('d',coast);
+    B=path.bounds({type:'FeatureCollection',features:feats}); B[0][1]=Math.max(B[0][1],40);
+    countryLabels=feats.map(f=>{
+      const polys=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates; let best=null,ba=-1;
+      polys.forEach(c=>{const pg={type:'Polygon',coordinates:c},a=path.area(pg);if(a>ba){ba=a;best=pg}});
+      const c=path.centroid(best), n=(f.properties&&f.properties.name)||''; if(!n||!isFinite(c[0]))return null;
+      return{type:'country',name:RENAME[n]||n,x:c[0],y:c[1],min:ba>1500?0:ba>500?1.4:ba>150?2.4:ba>40?4.2:ba>10?8:ba>2.5?14:26,max:ba>1500?14:ba>150?40:400,pri:-ba};
+    }).filter(Boolean);
+    buildLabels(); setExtent(); $('mapLoading').hidden=true; overlay();
+  }catch(e){$('mapLoading').textContent='Country outlines could not load. Pins and distances are still correct.'}
+}
+function buildLabels(){
+  const items=[...countryLabels];
+  SEAS.forEach(s=>{const p=P(s);items.push({type:'sea',name:s.name,x:p[0],y:p[1],min:s.min,max:s.max,pri:0})});
+  CITIES.forEach(c=>{const p=P(c);items.push({type:'city',name:c.name,x:p[0],y:p[1],min:[0,4.5,9,15,26][c.rank],max:1e9,pri:c.rank})});
+  const ord={country:0,city:1,sea:2};
+  items.sort((a,b)=>a.min-b.min||ord[a.type]-ord[b.type]||a.pri-b.pri);
+  gLab.selectAll('*').remove();
+  items.forEach(L=>{
+    const el=gLab.append('g').attr('class','lab '+L.type).style('display','none');
+    if(L.type==='city'){el.append('circle').attr('r',L.pri<=2?3:2.4);el.append('text').attr('x',7).attr('y',4).text(L.name)}
+    else el.append('text').attr('y',4).text(L.name);
+    L.el=el.node(); L.w=L.name.length*(L.type==='country'?8.6:L.type==='sea'?7.4:6.5)+(L.type==='city'?10:0); L.h=16;
+  });
+  LABELS=items;
+}
+function overlay(){
+  if(!hasD3)return; const k=tr.k, boxes=[];
+  // pins and clusters
+  clusters=[];
+  for(const t of list){ const x=t.px*k+tr.x, y=t.py*k+tr.y; if(x<-30||x>vw+30||y<-30||y>vh+30)continue;
+    const c=clusters.find(c=>Math.hypot(c.x-x,c.y-y)<30);
+    if(c){c.items.push(t);const n=c.items.length;c.x+=(x-c.x)/n;c.y+=(y-c.y)/n}else clusters.push({x,y,items:[t]}) }
+  const pins=gPins.selectAll('g.pin').data(clusters,c=>c.items.map(t=>t.id).join('-'))
+    .join(en=>{const p=en.append('g');p.append('circle').attr('class','sh');p.append('circle').attr('class','selring');p.append('circle').attr('class','c');p.append('text');return p});
+  pins.attr('transform',c=>`translate(${c.x},${c.y})`).each(function(c){
+    const n=c.items.length, one=n===1?c.items[0]:null, r=one?8:12+2.2*Math.sqrt(n), isSel=c.items.some(t=>t.id===sel);
+    const cls='pin '+(one?aClass(one):'multi'+(c.items.some(t=>t.free===0)?' now':''))+(c.items.every(t=>!t.in)?' out':'');
+    const s=d3.select(this).attr('class',cls); c.r=r;
+    s.select('.sh').attr('r',r+1).attr('cy',2); s.select('.c').attr('r',r);
+    s.select('.selring').attr('r',r+5).attr('display',isSel?null:'none'); s.select('text').text(one?'':n);
+    boxes.push([c.x-r-3,c.y-r-3,c.x+r+3,c.y+r+3]);
+  }).on('click',(e,c)=>{ if(picking)return; e.stopPropagation(); hideTip();
+      if(c.items.length===1)return openProfile(c.items[0].id);
+      const xs=c.items.map(t=>t.px), ys=c.items.map(t=>t.py), b=[[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.max(...ys)]];
+      const t2=fit(b,.45,vw*.45/60); if(t2.k<k*1.15)return openProfile(c.items[0].id);
+      svg.transition().duration(dur(600)).call(zoom.transform,t2);
+  }).on('pointerenter',(e,c)=>{ if(e.pointerType==='touch')return; const tip=$('tip'), one=c.items.length===1?c.items[0]:null;
+      tip.innerHTML=one?`<b>${esc(vis(one)?nameOf(one):one.prof)}</b><span>${esc(vis(one)?one.prof+' · '+one.city:lvl()==='none'?'Registered worker':one.city)}</span><br><span class="pill ${aClass(one)}">${aText(one)}</span>`
+        :`<b>${c.items.length} technicians</b><span>${esc([...new Set(c.items.map(t=>short(t.city)))].slice(0,3).join(', '))}${new Set(c.items.map(t=>t.city)).size>3?' …':''}</span><br><span>Click to zoom in</span>`;
+      tip.style.left=c.x+'px'; tip.style.top=(c.y-c.r+6)+'px'; tip.hidden=false;
+  }).on('pointerleave',hideTip);
+  // site marker
+  const sp=P(site), sx=sp[0]*k+tr.x, sy=sp[1]*k+tr.y; gSite.attr('transform',`translate(${sx},${sy})`);
+  const sn=short(site.name); boxes.push([sx-10,sy-28,sx+16+sn.length*7.2,sy+2]);
+  // ring label
+  const top=proj([site.lng,Math.min(84,site.lat+F.radius/6371*180/Math.PI)]);
+  gRingLab.attr('x',top[0]*k+tr.x).attr('y',top[1]*k+tr.y-7).text(nf(F.radius)+' km radius').attr('display',area||(sp[1]-top[1])*k<70?'none':null); gSite.attr('display',area?'none':null);
+  // labels with collision check
+  for(const L of LABELS){
+    let show=k>=L.min&&k<L.max, x,y;
+    if(show){x=L.x*k+tr.x;y=L.y*k+tr.y;show=x>-60&&x<vw+60&&y>-20&&y<vh+20}
+    if(show){ const b=L.type==='city'?[x-5,y-L.h/2,x+L.w,y+L.h/2]:[x-L.w/2,y-L.h/2,x+L.w/2,y+L.h/2];
+      if(boxes.some(o=>b[0]<o[2]&&b[2]>o[0]&&b[1]<o[3]&&b[3]>o[1]))show=false; else boxes.push(b) }
+    L.el.style.display=show?'':'none'; if(show)L.el.setAttribute('transform',`translate(${x.toFixed(1)},${y.toFixed(1)})`);
+  }
+  // scale bar
+  const lat=proj.invert(tr.invert?tr.invert([vw/2,vh/2]):[480,330])[1], pxKm=k*BASE/6371/Math.cos(lat*Math.PI/180);
+  const km=[5000,2000,1000,500,200,100,50,20,10,5,2,1].find(v=>v*pxKm<=120)||1;
+  $('scaleBar').style.width=Math.max(8,km*pxKm)+'px'; $('scaleTxt').textContent=nf(km)+' km';
+}
+function hideTip(){$('tip').hidden=true}
+function drawGeo(){
+  if(!hasD3)return;
+  list.forEach(t=>{const p=P(t);t.px=p[0];t.py=p[1]});
+  gRing.attr('d',area?null:path(ringGeo())); gArea.attr('d',area&&area.full?path(area.full):null);
+  const t=T.find(x=>x.id===sel);
+  gLink.attr('d',t&&!area?path({type:'LineString',coordinates:[[site.lng,site.lat],[t.lng,t.lat]]}):null);
+  gSite.select('text').text(short(site.name));
+  overlay();
+}
+
+// ---------- profile sheet
+const sheet=$('sheet');
+function openProfile(id){if(!canOpen(id))return;const was=sheet.hidden;if(id!==sel){sheetTab='over';reportOpen=false}sel=id;renderSheet();sheet.scrollTop=0;update();if(was&&innerWidth>860)fly()}
+function closeProfile(){sel=null;sheet.hidden=true;update()}
+let sheetTab='over';
+const LV=['','Basic','Independent','Expert'];
+const lvlHTML=n=>`<span class="lvl">${[1,2,3].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}${LV[n]||''}</span>`;
+const mY=d=>d.toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+function renderSheet(){
+  syncVer();
+  const t=T.find(x=>x.id===sel); if(!t){sheet.hidden=true;return}
+  if(!vis(t))return lockedSheet(t);
+  const open=true, cs=certs(t), none='<li><small>Not added yet.</small></li>';
+  const weeks=weeksOf(t);
+  const first=t.name.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-z]/g,'')||'tech';
+  let box;
+  if(t.mine) box=`<div class="box"><h3>This is your profile</h3><p>This is how employers with a paid account see you. Job requests arrive by email.</p><div class="row"><button class="btn small" type="button" data-act="edit">Edit profile</button><button class="btn small" type="button" data-act="remove">Remove profile</button></div></div>`;
+  else if(!t.req) box=`<form class="box" id="reqForm">
+      <h3>Send a job request</h3>
+      <div class="field"><label class="flabel" for="rqP">Project</label><input id="rqP" value="${esc(reqTitle(t))}"></div>
+      <div class="grid2">
+        <div class="field"><label class="flabel" for="rqS">Start</label><input id="rqS" type="date" value="${addW(mon,Math.max(1,t.free)).toISOString().slice(0,10)}"></div>
+        <div class="field"><label class="flabel" for="rqD">Duration</label><select id="rqD"><option>1 week</option><option selected>2 weeks</option><option>1 month</option><option>3 months</option></select></div>
+      </div>
+      <div class="field"><label class="flabel" for="rqM">Message</label><textarea id="rqM" rows="3" placeholder="Scope, rates, accommodation"></textarea></div>
+      <button class="btn primary" type="submit">Send request</button>
+      <p class="lock">${esc(t.name)} gets the request by email and accepts or declines the job.</p></form>`;
+  else if(t.req==='sent') box=`<div class="box"><h3>Request sent</h3><p>Waiting for ${esc(t.name)} to answer. You get a notification when the request is accepted.</p>
+      <button class="btn small" type="button" data-act="accept">Demo: accept as the technician</button></div>`;
+  else box=`<div class="box done"><h3>Job request accepted</h3><p>${esc(t.name)} accepted. When the job is finished you can leave a review under Reviews.</p></div>`;
+  let body;
+  if(sheetTab==='cv') body=`
+    <div><h3>Skills</h3><ul class="skl">${t.skills.map(s=>{const i=(t.skillInfo&&t.skillInfo[s])||{lvl:1,yrs:0,note:''};return `<li><b>${esc(SK[s]||s)}</b>${lvlHTML(i.lvl)}<span class="yrs">${i.yrs?i.yrs+(i.yrs==1?' year':' years'):''}</span>${i.note?`<small>${esc(i.note)}</small>`:''}</li>`}).join('')}</ul></div>
+    ${t.sector==='wind'&&t.oem?`<div><h3>Turbine manufacturers</h3><p>${esc(t.oem)}</p></div>`:''}
+    <div><h3>Languages</h3><ul class="skl">${(t.langList||[]).map(l=>`<li><b>${esc(l.name)}</b><span></span><span class="yrs">${esc(l.lvl||'')}</span></li>`).join('')||none}</ul></div>
+    <div><h3>Work experience</h3><ul class="tl">${(t.jobs||[]).map(j=>`<li><small>${esc(j.from)} – ${esc(j.to||'today')}</small><b>${esc(j.role)}</b><span>${esc([j.org,j.place].filter(Boolean).join(' · '))}</span>${j.text?`<p>${esc(j.text)}</p>`:''}</li>`).join('')||none}</ul></div>
+    <div><h3>Education and training</h3><ul class="tl">${(t.edu||[]).map(e=>`<li><small>${esc(e.year||'')}</small><b>${esc(e.title)}</b><span>${esc(e.school||'')}</span></li>`).join('')||none}</ul></div>`;
+  else if(sheetTab==='rev') body=reviewsHTML(t);
+  else if(sheetTab==='cert') body=`
+    <div><ul class="certs">${cs.map(c=>`<li><b>${esc(c.n)}</b>
+      <span><span class="tag ${c.m<0?'bad':c.m<3?'warn':'ok'}">${c.m<0?'Expired':c.m<3?'Expires soon':'Valid'}</span></span>
+      <small>${c.issuer?'Issued by '+esc(c.issuer):'Issuer not stated'}</small>
+      <small>${c.issued?'Issued '+mY(c.issued)+' · ':''}${c.exp?'valid until '+mY(c.exp):'No expiry date'}</small>
+      <small>${c.no?'No. '+esc(open?c.no:'••••'+String(c.no).slice(-3)):'No number entered'} · ${c.ver?(c.g?'verified in WINDA':'verified by admin'):t.pending?'check in progress':'not verified'}</small>
+      <small>${open?'File available':'File locked until the request is accepted'}</small></li>`).join('')}</ul>${cs.length?'':'<p class="lock">No certificates added yet.</p>'}</div>`;
+  else body=`
+    ${t.bio?`<p>${esc(t.bio)}</p>`:''}
+    <dl class="stats">
+      <div><dt>${area?'To centre of country':'To site'}</dt><dd>${nf(hav(site,t))} km</dd></div>
+      <div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div>
+      <div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div>
+    </dl>
+    ${contactHTML(t)}
+    <dl class="facts">
+      <dt>Trade</dt><dd>${esc(SECTORS[t.sector].name)}</dd>
+      <dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd>
+      <dt>Top skills</dt><dd><span class="chips">${t.skills.map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${esc(SK[s]||s)}</span>`).join('')}</span></dd>
+      <dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd>
+      <dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd>
+      <dt>Travels</dt><dd>${esc(t.travel||'Not stated')}</dd>
+      <dt>Day rate</dt><dd>${esc(t.rate||'On request')}</dd>
+    </dl>
+    <div><h3>Availability, next 12 weeks</h3><div class="weeks">${weeks.map(b=>`<i class="${b?'b':''}" title="${b?'Booked':'Free'}"></i>`).join('')}</div>
+      <div class="wk"><span>${fmt(mon)}</span><span>green = free</span><span>${fmt(addW(mon,11))}</span></div></div>`;
+  sheet.innerHTML=`
+    <div class="shead">${av(t,1)}<div><h2>${esc(nameOf(t))}</h2><p>${esc(t.prof)}</p></div><button class="btn small" type="button" data-act="close">Close</button></div>
+    <div class="row" style="flex-wrap:wrap"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${verTag(t)}</div>
+    <div class="tabs" role="tablist">${[['over','Overview'],['cv','Skills & experience'],['cert',`Certificates (${cs.length})`],['rev',`Reviews (${reviewsOf(t).length})`]].map(x=>`<button type="button" role="tab" data-tab="${x[0]}" aria-selected="${sheetTab===x[0]}">${x[1]}</button>`).join('')}</div>
+    ${body}
+    ${box}
+    ${sheetExtra(t)}`;
+  sheet.hidden=false;
+}
+sheet.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]'), c=e.target.closest('[data-copy]'), t=T.find(x=>x.id===sel), tb=e.target.closest('[data-tab]');
+  if(tb){sheetTab=tb.dataset.tab;renderSheet();return}
+  if(a&&sheetAct(a.dataset.act,t))return;
+  if(a){ if(a.dataset.act==='close')closeProfile(); else if(a.dataset.act==='edit')openReg(); else if(a.dataset.act==='remove')removeMine(); else if(a.dataset.act==='accept'&&t){t.req='ok';renderSheet();toast(t.name+' accepted your request.')} }
+  if(c){ const v=c.dataset.copy; (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('Copied'),()=>toast('Select the text to copy it.')) }
+});
+sheet.addEventListener('submit',e=>{e.preventDefault();const t=T.find(x=>x.id===sel);if(t)sendRequest(t)});
+
+// ---------- registration wizard
+const STEPS=['About you','Work','Skills','Experience','Certificates','Location','Availability','Review'], LAST=STEPS.length-1;
+const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind','Other'];
+const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
+const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
+const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
+T.forEach(t=>{const c=CITYIDX[short(t.city).toLowerCase()];if(c)c.country=t.country});
+const opt=a=>a.map(n=>`<option>${esc(n)}</option>`).join('');
+$('rgCityList').innerHTML=CITIES.map(c=>c.name).sort().map(n=>`<option value="${esc(n)}">`).join('');
+$('rgCountryList').innerHTML=[...new Set(T.map(t=>t.country))].sort().map(n=>`<option value="${esc(n)}">`).join('');
+$('rlName').innerHTML=opt(LANGS);
+$('rgSector').innerHTML=Object.entries(SECTORS).map(([k,s])=>`<option value="${k}">${esc(s.name)}</option>`).join('');
+const fv=id=>$(id).value.trim();
+function chipSet(el,items,set){
+  el.innerHTML=items.map(k=>`<button type="button" class="chip" data-k="${esc(k)}" aria-pressed="${set.has(k)}">${esc(k)}</button>`).join('');
+  el.addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const k=b.dataset.k;set.has(k)?set.delete(k):set.add(k);b.setAttribute('aria-pressed',set.has(k))});
+}
+chipSet($('rgOem'),OEMS,regOem);
+const syncChips=(id,set)=>$(id).querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',set.has(b.dataset.k)));
+// skills with level, years and details
+function syncSkillInfo(){regSkills.forEach(k=>{if(!R.skillInfo[k])R.skillInfo[k]={lvl:2,yrs:'',note:''}});Object.keys(R.skillInfo).forEach(k=>{if(!regSkills.has(k))delete R.skillInfo[k]})}
+function renderSkillRows(){
+  syncSkillInfo();
+  $('rgSkillRows').innerHTML=[...regSkills].map(k=>{const i=R.skillInfo[k],n=esc(SK[k]);return `<div class="srow"><b>${n}</b>
+    <select data-k="${k}" data-f="lvl" aria-label="Level for ${n}"><option value="1"${i.lvl==1?' selected':''}>Basic: works with supervision</option><option value="2"${i.lvl==2?' selected':''}>Independent: works alone</option><option value="3"${i.lvl==3?' selected':''}>Expert: can lead and train others</option></select>
+    <input type="number" min="0" max="50" inputmode="numeric" data-k="${k}" data-f="yrs" value="${esc(i.yrs)}" placeholder="Years" aria-label="Years of ${n}">
+    <input data-k="${k}" data-f="note" value="${esc(i.note)}" maxlength="140" placeholder="Details: materials, machines, repair categories, standards" aria-label="Details for ${n}"></div>`}).join('');
+}
+$('rgSkills').addEventListener('click',renderSkillRows);
+$('rgSkillRows').addEventListener('input',e=>{const d=e.target.dataset;if(d.k&&R.skillInfo[d.k])R.skillInfo[d.k][d.f]=e.target.value});
+$('rgSkillRows').addEventListener('change',e=>{const d=e.target.dataset;if(d.k&&R.skillInfo[d.k]){R.skillInfo[d.k][d.f]=e.target.value;saveDraft()}});
+function regSectorChanged(keep){
+  const k=$('rgSector').value, s=SECTORS[k];
+  $('rgProf').innerHTML=opt([...s.profs,'Other']); if(!keep){regSkills.clear();R.skillInfo={}} drawRegSkills(); renderSkillRows();
+  $('rgOemWrap').hidden=k!=='wind'; $('rgProfOtherWrap').hidden=true;
+  $('rcType').innerHTML=`<optgroup label="${esc(s.name)}">${opt(k==='wind'?WINDCERTS:s.certs.filter(c=>!GENCERTS.includes(c)))}</optgroup><optgroup label="General">${opt(GENCERTS)}</optgroup>`;
+  $('rcOtherWrap').hidden=true;
+}
+regSectorChanged(true);
+$('rgSector').addEventListener('change',()=>{regSectorChanged(false);saveDraft()});
+$('rgProf').addEventListener('change',()=>{$('rgProfOtherWrap').hidden=$('rgProf').value!=='Other'});
+$('rcType').addEventListener('change',()=>{$('rcOtherWrap').hidden=$('rcType').value!=='Other certificate'});
+$('rlName').addEventListener('change',()=>{$('rlOtherWrap').hidden=$('rlName').value!=='Other'});
+$('rcNoExp').addEventListener('change',()=>{$('rcExp').disabled=$('rcNoExp').checked});
+// draft
+function saveDraft(){const f={rgSector:$('rgSector').value},c={};FIELDS.forEach(i=>f[i]=$(i).value);CHECKS.forEach(i=>c[i]=$(i).checked);
+  store.set('hrwww.reg2',{f,c,skills:[...regSkills],oem:[...regOem],R,photo:regPhoto})}
+function loadDraft(){const d=store.get('hrwww.reg2');if(!d||!d.f)return; regPhoto=okPhoto(d.photo);
+  if(d.R&&typeof d.R==='object')['langs','jobs','edu','certs'].forEach(k=>{if(Array.isArray(d.R[k]))R[k]=d.R[k]});
+  if(d.R&&d.R.skillInfo&&typeof d.R.skillInfo==='object')R.skillInfo=d.R.skillInfo;
+  regSkills.clear();(d.skills||[]).filter(x=>SK[x]).forEach(x=>regSkills.add(x));
+  if(SECTORS[d.f.rgSector]){$('rgSector').value=d.f.rgSector;regSectorChanged(true)}
+  FIELDS.forEach(i=>{if(d.f[i]!=null)$(i).value=d.f[i]});if(!$('rgProf').value)$('rgProf').selectedIndex=0;$('rgProfOtherWrap').hidden=$('rgProf').value!=='Other';CHECKS.forEach(i=>$(i).checked=!!(d.c&&d.c[i]));
+  regOem.clear();(d.oem||[]).forEach(x=>regOem.add(x));syncChips('rgOem',regOem);}
+// lists: languages, jobs, education, certificates
+const longDate=s=>new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+function certStatus(exp){if(!exp)return['ok','No expiry'];const m=(new Date(exp)-now)/2.63e9;return m<0?['bad','Expired']:m<3?['warn','Expires soon']:['ok','Valid']}
+function listHTML(key,fmt,empty){return R[key].map((x,i)=>{const r=fmt(x);return `<li><span>${esc(r[0])}</span>${r[1]||'<span></span>'}<button class="btn small" type="button" data-rm="${key}:${i}">Remove</button><small>${esc(r[2])}</small></li>`}).join('')||`<li><small>${empty}</small></li>`}
+function renderLists(){
+  $('rlList').innerHTML=listHTML('langs',l=>[l.name,'',l.lvl],'No languages added yet.');
+  $('rjList').innerHTML=listHTML('jobs',j=>[j.role,'',`${j.from} – ${j.to||'today'} · ${[j.org,j.place].filter(Boolean).join(', ')}${j.text?' · '+j.text:''}`],'No jobs added yet. Profiles with a work history are contacted more often.');
+  $('reList').innerHTML=listHTML('edu',e=>[e.title,'',[e.school,e.year].filter(Boolean).join(' · ')],'No education added yet.');
+  $('rcList').innerHTML=listHTML('certs',c=>{const s=certStatus(c.exp);return[c.type,`<span class="tag ${s[0]}">${s[1]}</span>`,[c.issuer&&'Issued by '+c.issuer,c.no&&'No. '+c.no,c.issued&&'issued '+longDate(c.issued),c.exp?'valid until '+longDate(c.exp):'no expiry',c.file||'no file attached'].filter(Boolean).join(' · ')]},'No certificates added yet. Profiles with verified certificates are contacted first.');
+}
+$('regBody').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;const[k,i]=b.dataset.rm.split(':');R[k].splice(+i,1);renderLists();saveDraft()});
+const clear=ids=>ids.forEach(i=>$(i).value='');
+$('rlAdd').onclick=()=>{const n=$('rlName').value==='Other'?fv('rlOther'):$('rlName').value;if(!n)return regErr('Enter the language.');
+  regErr('');R.langs=R.langs.filter(l=>l.name.toLowerCase()!==n.toLowerCase());R.langs.push({name:n,lvl:$('rlLvl').value});clear(['rlOther']);renderLists();saveDraft()};
+$('rjAdd').onclick=()=>{const y=now.getFullYear(),from=+fv('rjFrom'),to=fv('rjTo')?+fv('rjTo'):'';
+  if(!fv('rjRole'))return regErr('Enter the job title.');
+  if(!(from>=1960&&from<=y))return regErr('Enter the year you started, for example 2021.');
+  if(to!==''&&!(to>=from&&to<=y))return regErr('The end year must be between the start year and this year. Leave it empty for your current job.');
+  regErr('');R.jobs.push({role:fv('rjRole'),org:fv('rjOrg'),place:fv('rjPlace'),from,to,text:fv('rjText')});R.jobs.sort((a,b)=>(b.to||9999)-(a.to||9999)||b.from-a.from);clear(['rjRole','rjOrg','rjPlace','rjFrom','rjTo','rjText']);renderLists();saveDraft()};
+$('reAdd').onclick=()=>{if(!fv('reTitle'))return regErr('Enter the qualification or course.');
+  regErr('');R.edu.push({title:fv('reTitle'),school:fv('reSchool'),year:fv('reYear')});clear(['reTitle','reSchool','reYear']);renderLists();saveDraft()};
+$('rcAdd').onclick=()=>{const type=$('rcType').value==='Other certificate'?fv('rcOther'):$('rcType').value, noExp=$('rcNoExp').checked, exp=noExp?'':$('rcExp').value, f=$('rcFile').files[0];
+  if(!type)return regErr('Enter the certificate name.');
+  if(!noExp&&!exp)return regErr('Enter the date the certificate is valid until, or tick "does not expire".');
+  if($('rcIssued').value&&exp&&$('rcIssued').value>exp)return regErr('The issue date is after the expiry date.');
+  regErr('');R.certs.push({type,issuer:fv('rcIssuer'),no:fv('rcNo'),issued:$('rcIssued').value,exp,file:f?f.name:''});clear(['rcOther','rcIssuer','rcNo','rcIssued','rcExp','rcFile']);$('rcNoExp').checked=false;$('rcExp').disabled=false;renderLists();saveDraft()};
+$('rgPhoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+  if(f.size>3e6){e.target.value='';return regErr('The photo is larger than 3 MB. Choose a smaller one.')}
+  regErr(''); const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{ // shrink to a 160 px square so it fits in browser storage
+    const S=160,cv=document.createElement('canvas'),m=Math.min(im.width,im.height);cv.width=cv.height=S;
+    cv.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);regPhoto=cv.toDataURL('image/jpeg',.82);photoPrev();saveDraft()};im.src=r.result};r.readAsDataURL(f)});
+const okPhoto=v=>typeof v==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v)?v:null;
+function photoPrev(){const el=$('rgPhotoPrev');el.style.backgroundImage=regPhoto?`url('${regPhoto}')`:'';el.textContent=regPhoto?'':((fv('rgFirst')[0]||'')+(fv('rgLast')[0]||'')).toUpperCase()||'?'}
+$('rgCity').addEventListener('change',()=>{const c=CITYIDX[fv('rgCity').toLowerCase()];if(c&&c.country&&!fv('rgCountry'))$('rgCountry').value=c.country});
+$('regForm').addEventListener('input',()=>{$('rgBioN').textContent=$('rgBio').value.length+' / 400';if(step===0)photoPrev();saveDraft()});
+$('regForm').addEventListener('click',e=>{if(e.target.closest('.chip'))saveDraft()});
+function regErr(m){const e=$('rgErr');e.hidden=!m;e.textContent=m;if(m)e.scrollIntoView({block:'nearest'})}
+function validate(n){
+  if(n===0)return !fv('rgFirst')||!fv('rgLast')?'Enter your first name and surname.':!/^\S+@\S+\.\S+$/.test(fv('rgEmail'))?'Enter a valid email address, for example name@example.com.':'';
+  if(n===1)return $('rgProf').value==='Other'&&!fv('rgProfOther')?'Enter your profession.':'';
+  if(n===2)return !regSkills.size?'Choose at least one skill.':!R.langs.length?'Add at least one language.':'';
+  if(n===5)return !CITYIDX[fv('rgCity').toLowerCase()]?'Choose a town from the list. This prototype knows about 100 towns; the real site will find any place.':!fv('rgCountry')?'Enter your country.':'';
+  if(n===6)return !$('rgOk').checked||!$('rgTerms').checked?'Tick both boxes to confirm your profile and accept the terms.':'';
+  return '';
+}
+function showStep(n){
+  step=n; maxStep=Math.max(maxStep,n); regErr('');
+  document.querySelectorAll('.rstep').forEach(s=>s.hidden=+s.dataset.step!==n);
+  $('regSteps').innerHTML=STEPS.map((s,i)=>`<li class="${i<n?'done':i===n?'cur':''}"><button type="button" data-s="${i}"${i>maxStep?' disabled':''}${i===n?' aria-current="step"':''}><span>${i+1}. ${s}</span></button></li>`).join('');
+  $('regBack').hidden=n===0; $('regPos').textContent=`Step ${n+1} of ${STEPS.length}`;
+  $('regNext').textContent=n<LAST?'Continue':mine?'Save changes':'Create profile';
+  renderLists(); if(n===2)renderSkillRows(); if(n===LAST)renderReview(); if(n===0)photoPrev();
+  $('regBody').scrollTop=0;
+}
+function goTo(n){for(let i=0;i<n;i++){const m=validate(i);if(m){showStep(i);return regErr(m)}}showStep(n)}
+$('regSteps').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)goTo(+b.dataset.s)});
+$('regBack').onclick=()=>showStep(Math.max(0,step-1));
+function buildTech(){
+  syncSkillInfo(); const c=CITYIDX[fv('rgCity').toLowerCase()], from=fv('rgFrom')?new Date(fv('rgFrom')):now, sec=$('rgSector').value;
+  return{id:mine?mine.id:Date.now(),uid:ACC.uid,real:true,booked:mine?mine.booked:null,verify:mine?mine.verify:null,mine:true,pending:false,unver:true,name:fv('rgFirst')+' '+fv('rgLast')[0].toUpperCase()+'.',full:fv('rgFirst')+' '+fv('rgLast'),email:fv('rgEmail'),phone:fv('rgPhone'),city:c.name,country:fv('rgCountry'),lat:c.lat+.04,lng:c.lng+.06,
+    sector:sec,prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
+    skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
+    langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
+    free:Math.max(0,Math.ceil((from-now)/6048e5)),years:+fv('rgYears')||0,bio:fv('rgBio'),
+    travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
+    work:$('rgWork').value,photo:regPhoto};
+}
+function renderReview(){
+  const t=buildTech(), row=(a,b)=>`<dt>${a}</dt><dd>${esc(b||'–')}</dd>`;
+  $('regReview').innerHTML=`<div class="box"><h3>Employers with a paid account see</h3><dl>
+      ${row('Full name',t.full)}${row('Email',t.email)}${row('Phone',t.phone)}${row('Trade',SECTORS[t.sector].name)}${row('Profession',t.prof)}${row('Level',t.level)}${row('Experience',t.years?t.years+' years':'')}
+      ${row('Skills',t.skills.map(s=>`${SK[s]} (${LV[t.skillInfo[s].lvl]}${t.skillInfo[s].yrs?', '+t.skillInfo[s].yrs+' y':''})`).join('; '))}
+      ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
+      ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
+      ${row('Certificates',t.certList.length?t.certList.map(c=>c.type+(c.no?' (No. '+c.no+')':'')).join('; '):'None yet')}${row('WINDA ID',fv('rgWinda'))}
+      ${row('Base',t.city+', '+t.country)}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${row('Day rate',t.rate||'On request')}</dl></div>
+    <div class="box"><h3>Other workers and visitors see</h3><dl>${row('On the map','A dot near '+t.city)}${row('Name','Not shown')}${row('Contact','Not shown')}${row('Profile','Cannot be opened')}</dl></div>`;
+}
+function openReg(){if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
+function placeMine(t){ T.splice(0,T.length,...T.filter(x=>!x.mine)); T.push(t); mine=t; }
+function removeMine(){ T.splice(0,T.length,...T.filter(x=>!x.mine)); mine=null; if(ACC.db)ACC.db.doc('workers/'+ACC.uid).delete().catch(dbErr); store.set('hrwww.reg2',null); $('regForm').reset(); R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}; regOem.clear(); syncChips('rgOem',regOem); regPhoto=null; regSectorChanged(false); renderLists(); closeProfile(); toast('Your profile was removed.'); }
+loadDraft();
+$('openReg').onclick=()=>A.role==='guest'?show('acct'):A.role==='new'?show('join'):openReg();
+$('acctBtn').onclick=()=>show('acct');
+function closeReg(){$('regOverlay').hidden=true;$('openReg').focus()}
+$('closeReg').onclick=closeReg;
+$('regOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeReg()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('regOverlay').hidden)closeReg();else if(picking)setPick(false);else if(sel)closeProfile()});
+$('regForm').addEventListener('submit',e=>{
+  e.preventDefault(); const msg=validate(step); if(msg)return regErr(msg);
+  if(step<LAST)return goTo(step+1);
+  for(let i=0;i<LAST;i++){const m=validate(i);if(m){showStep(i);return regErr(m)}}
+  if(!ACC.db)return regErr('Sign in to claude.ai to save your profile.');
+  const wasMine=!!mine, t=buildTech(); placeMine(t); saveMine(t); if(!ACC.owner&&ACC.type!=='wrk')setType('wrk'); saveDraft();
+  $('regOverlay').hidden=true;
+  setSector(t.sector); F.skills.add(t.skills[0]); drawSkillChips(); setAvail('any');
+  customSite(t.city+', '+t.country,t.lat-.04,t.lng-.06,t.country);
+  sheetTab='cv'; sel=t.id; renderSheet(); update(); fly();
+  toast(wasMine?'Your profile was updated.':'Profile created and live. Get the Verified badge in My area to appear first.');
+});
+
+// ---------- accounts, projects, shortlist, requests, reviews, worker area, admin (prototype state, kept in this browser)
+const A={role:'guest',view:null,company:null,projects:[],shortlist:[],requests:[],reviews:[],reports:[],inbox:[],approved:[],verNo:[],rejected:[],active:null,sub:null};
+const saveA=()=>{savePriv();if(ACC.owner)saveAdmin()}, byId=id=>T.find(x=>x.id===id), today=()=>new Date().toISOString().slice(0,10);
+function certs(t){const ok=isVer(t);return certsBase(t).map(c=>({...c,ver:ok}))}
+function weeksOf(t){if(Array.isArray(t.booked)&&t.booked.length===12)return t.booked;const s=t.free+3+t.id%4;return Array.from({length:12},(_,w)=>w<t.free||(w>=s&&w<s+2+t.id%3))}
+const inCountry=(t,c)=>t.country===c||!!(COUNTRIES[c]&&COUNTRIES[c].full&&window.d3&&d3.geoContains(COUNTRIES[c].full,[t.lng,t.lat]));
+const pendingList=()=>T.filter(t=>t.pending&&!A.rejected.includes(t.id));
+// reviews
+const REVTXT=['Reliable and careful, finished ahead of schedule.','Good quality work and clear daily reports.','Arrived prepared, all certificates in order. Would hire again.','Solid work, communicates well with the site team.'];
+function reviewsOf(t){const g=[];if(!t.real&&!t.pending){const n=(t.id*3)%4;for(let i=0;i<n;i++)g.push({stars:4+((t.id+i)%2),text:REVTXT[(t.id+i)%4],company:'Example contractor '+String.fromCharCode(65+(t.id+i)%6),date:'example review'})}
+  return g.concat(A.reviews.filter(r=>r.techId===t.id))}
+const starTxt=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+function ratingHTML(t){const r=reviewsOf(t);if(!r.length)return '';const a=r.reduce((s,x)=>s+x.stars,0)/r.length;return `<span class="rate"><b>★ ${a.toFixed(1)}</b> (${r.length})</span>`}
+function reviewsHTML(t){
+  const r=reviewsOf(t), mineDone=A.reviews.some(x=>x.techId===t.id&&x.from===ACC.uid);
+  return `<div><ul class="tl">${r.map(x=>`<li><small>${esc(x.date)}</small><b class="stars">${starTxt(x.stars)}</b><span>${esc(x.company)}</span>${x.text?`<p>${esc(x.text)}</p>`:''}</li>`).join('')||'<li><small>No reviews yet.</small></li>'}</ul></div>
+    ${t.mine?'':t.req==='ok'&&!mineDone?`<div class="box"><h3>Review ${esc(t.name)} after the job</h3>
+      <div class="field"><label class="flabel" for="rvS">Rating</label><select id="rvS"><option value="5">5 – excellent</option><option value="4">4 – good</option><option value="3">3 – acceptable</option><option value="2">2 – poor</option><option value="1">1 – very poor</option></select></div>
+      <div class="field"><label class="flabel" for="rvT">What was the work like?</label><textarea id="rvT" rows="3" placeholder="Quality, reliability, safety, communication"></textarea></div>
+      <button class="btn primary" type="button" data-act="review">Publish review</button></div>`
+      :`<p class="lock">${mineDone?'You have reviewed this person.':'Only employers whose request was accepted can leave a review, after the job is done.'}</p>`}`;
+}
+let reportOpen=false;
+function sheetExtra(t){
+  if(t.mine)return '';const on=A.shortlist.includes(t.id);
+  return `<div class="rowb between"><button class="btn small" type="button" data-act="short" aria-pressed="${on}">${on?'Saved in shortlist':'Save to shortlist'}</button><button class="btn small" type="button" data-act="report">Report this profile</button></div>
+    ${reportOpen?`<div class="box"><h3>Report this profile</h3>
+      <div class="field"><label class="flabel" for="rpR">Reason</label><select id="rpR"><option>Certificate looks wrong</option><option>Skills or experience are not true</option><option>Fake person or duplicate profile</option><option>Did not show up for the job</option><option>Other</option></select></div>
+      <div class="field"><label class="flabel" for="rpT">Details</label><textarea id="rpT" rows="2"></textarea></div>
+      <button class="btn small" type="button" data-act="reportSend">Send report to admin</button></div>`:''}`;
+}
+function sheetAct(act,t){
+  if(!t)return false;
+  if(act==='unlock'){if(lvl()==='basic'&&left()>0&&!A.sub.opened.includes(t.id)){A.sub.opened.push(t.id);saveA();sheetTab='over';renderSheet();sheet.scrollTop=0;update();toast('Profile opened. '+left()+' of '+PLANS.basic.limit+' openings left this month.')}return true}
+  if(act==='goSub'){show('sub');return true}
+  if(act==='short'){const i=A.shortlist.indexOf(t.id);i<0?A.shortlist.push(t.id):A.shortlist.splice(i,1);saveA();renderSheet();nav();toast(i<0?'Saved to your shortlist.':'Removed from your shortlist.');return true}
+  if(act==='report'){reportOpen=!reportOpen;renderSheet();return true}
+  if(act==='reportSend'){if(!ACC.db){toast('Sign in to send a report.');return true}sendReport({techId:t.id,reason:$('rpR').value,text:$('rpT').value.trim(),date:today()});reportOpen=false;renderSheet();nav();toast('Report sent. An admin will check this profile.');return true}
+  if(act==='review'){const rv={techId:t.id,from:ACC.uid,stars:+$('rvS').value,text:$('rvT').value.trim(),company:(A.company&&A.company.name)||'Your company',date:today()};A.reviews.push(rv);if(ACC.db)ACC.db.collection('reviews').add(rv).catch(dbErr);renderSheet();update();toast('Review published.');return true}
+  if(act==='accept'){const r=A.requests.find(x=>x.techId===t.id);if(r)setReq(r,'accepted');nav();return false}
+  return false;
+}
+function reqTitle(t){const p=A.projects.find(x=>x.id===A.active);return p?p.title:`${[...F.skills].map(k=>SK[k]).join(', ')||t.prof} – ${short(site.name)}`}
+function sendRequest(t){
+  if(!ACC.db){toast('Sign in to send job requests.');return}
+  const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,msg:$('rqM').value.trim(),status:'sent',date:today()};
+  A.requests=A.requests.filter(x=>x.id!==r.id);A.requests.push(r);ACC.db.doc('requests/'+r.id).set(r).catch(dbErr);
+  t.req='sent';renderSheet();nav();toast('Request sent to '+t.name+'. You can follow it under Requests.');
+}
+// navigation between the map and the pages
+let view='find', pj=null, coEdit=false;
+function nav(){
+  const r=A.role, items=r==='guest'?[['find','Map'],['acct','Sign in']]:r==='new'?[['join','Create account'],['find','Map']]:r==='emp'?[['find','Find people'],['projects',`Projects (${A.projects.length})`],['short',`Shortlist (${A.shortlist.length})`],['reqs',`Requests (${A.requests.length})`],['sub',subOn()?'Subscription':'Subscribe']]
+    :r==='wrk'?[['me','My area'],['find','Map']]:[['queue',`Verification queue (${pendingList().length})`],['reports',`Reports (${A.reports.length})`],['find','Map']];
+  $('mnav').innerHTML=items.map(x=>`<button type="button" data-v="${x[0]}"${x[0]===view?' aria-current="page"':''}>${x[1]}</button>`).join('');
+  $('roleSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===r));
+  $('roleSeg').hidden=!ACC.owner; regBtn(); acctChip();
+}
+function show(v){view=v;$('mainWrap').hidden=v!=='find';$('page').hidden=v==='find';if(v!=='find'){renderPage();$('page').scrollTop=0}nav()}
+function setRole(r){if(!ACC.owner)return;A.view=r;A.role=r;saveA();sel=null;sheet.hidden=true;show(r==='emp'?'find':r==='wrk'?'me':'queue');update()}
+$('mnav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.v)});
+$('roleSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setRole(b.dataset.r)});
+const pcard=(t,btns,extra)=>`<div class="card pc">${av(t)}<div class="pcb"><div><b>${esc(dn(t))}</b> ${ratingHTML(t)}</div><div class="meta">${esc(t.prof)} · ${esc(t.city)}, ${esc(t.country)}</div><div class="rowb"><span class="pill ${aClass(t)}">${aText(t)}</span>${verTag(t)}</div>${extra||''}<div class="rowb">${btns}</div></div></div>`;
+function matchCount(p){return T.filter(t=>t.sector===p.sector&&p.skills.every(s=>t.skills.includes(s))&&!A.rejected.includes(t.id)&&(p.region===''?inCountry(t,p.country):hav(REG[p.country][+p.region],t)<=300)).length}
+const placeOf=p=>p.region===''?p.country:`${REG[p.country][+p.region].name}, ${p.country}`;
+function projectsPage(){
+  const co=A.company;
+  const coBox=companyBox();
+  const form=pj?`<div class="card"><h2>New project</h2>
+      <div class="grid2"><div class="field"><label class="flabel" for="pjTitle">Project title</label><input id="pjTitle" placeholder="e.g. Blade repair campaign, Kimmeria wind farm"></div>
+      <div class="field"><label class="flabel" for="pjSector">Trade</label><select id="pjSector">${Object.entries(SECTORS).map(([k,v])=>optv(k,v.name,k===pj.sector)).join('')}</select></div></div>
+      <div><span class="flabel">Skills needed</span><div class="chips" id="pjSkills">${pjChips()}</div></div>
+      <div class="grid2"><div class="field"><label class="flabel" for="pjCountry">Country</label><select id="pjCountry">${Object.keys(COUNTRIES).sort((a,b)=>a.localeCompare(b)).map(n=>optv(n,n,n===pj.country)).join('')}</select></div>
+      <div class="field"><label class="flabel" for="pjRegion">Region</label><select id="pjRegion">${pjRegions()}</select></div>
+      <div class="field"><label class="flabel" for="pjStart">Start date</label><input id="pjStart" type="date"></div>
+      <div class="field"><label class="flabel" for="pjWeeks">Duration (weeks)</label><input id="pjWeeks" type="number" min="1" value="2"></div>
+      <div class="field"><label class="flabel" for="pjPeople">People needed</label><input id="pjPeople" type="number" min="1" value="2"></div></div>
+      <div class="field"><label class="flabel" for="pjDesc">Description</label><textarea id="pjDesc" rows="3" placeholder="Scope, turbine or machine types, rates, accommodation, travel"></textarea></div>
+      <p class="err" id="pjErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="pjSave">Save project</button><button class="btn" type="button" data-pa="pjCancel">Cancel</button></div></div>`:'';
+  return `<div class="pwrap"><div class="phead"><h1>Projects</h1>${pj?'':'<button class="btn primary" type="button" data-pa="pjNew">Post a project</button>'}</div>${coBox}${form}
+    ${A.projects.map(p=>{const n=matchCount(p);return `<div class="card"><h2>${esc(p.title)}</h2>
+      <div class="meta">${esc(SECTORS[p.sector].name)}${p.skills.length?' · '+esc(p.skills.map(s=>SK[s]).join(', ')):''} · ${esc(placeOf(p))}</div>
+      <div class="meta">${p.start?'Starts '+longDate(p.start)+' · ':''}${esc(p.weeks)} weeks · ${esc(p.people)} people needed</div>${p.desc?`<p>${esc(p.desc)}</p>`:''}
+      <div class="rowb"><span class="tag ${n?'ok':'warn'}">${n} matching ${n===1?'person':'people'} ${p.region===''?'in the country':'within 300 km'}</span></div>
+      <div class="rowb"><button class="btn primary small" type="button" data-pa="pjFind" data-id="${p.id}">Find people on the map</button><button class="btn small" type="button" data-pa="pjDel" data-id="${p.id}">Delete</button></div></div>`}).join('')
+      ||(pj?'':'<div class="card"><h2>No projects yet</h2><p class="meta">Post a project to describe the job once. The search then opens with the right trade, skills and location, and your requests carry the project name.</p></div>')}</div>`;
+}
+const pjChips=()=>Object.entries(SECTORS[pj.sector].skills).map(([k,l])=>`<button type="button" class="chip" data-pk="${k}" aria-pressed="${pj.skills.has(k)}">${esc(l)}</button>`).join('');
+const pjRegions=()=>optv('','Whole country')+(REG[pj.country]||[]).map((r,i)=>optv(i,r.name)).join('');
+function shortPage(){
+  const l=A.shortlist.map(byId).filter(Boolean);
+  return `<div class="pwrap"><div class="phead"><h1>Shortlist</h1></div>${l.map(t=>pcard(t,`<button class="btn primary small" type="button" data-pa="open" data-id="${t.id}">Open profile</button><button class="btn small" type="button" data-pa="unshort" data-id="${t.id}">Remove</button>`,`<div class="meta">${esc(t.skills.map(s=>SK[s]).join(', '))}</div>`)).join('')
+    ||'<div class="card"><h2>Your shortlist is empty</h2><p class="meta">Open a profile on the map and choose "Save to shortlist" to keep people here while you compare them.</p></div>'}</div>`;
+}
+function reqsPage(){
+  const st={sent:['warn','Waiting for answer'],accepted:['ok','Accepted'],declined:['bad','Declined']};
+  return `<div class="pwrap"><div class="phead"><h1>Requests</h1></div>${A.requests.slice().reverse().map(r=>{const t=byId(r.techId);if(!t)return '';const s=st[r.status]||st.sent, rev=A.reviews.some(x=>x.techId===t.id&&x.from===ACC.uid);
+    return pcard(t,`<button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button>${r.status==='sent'&&!t.real?`<button class="btn small" type="button" data-pa="demoAccept" data-id="${t.id}">Demo: accept as the worker</button>`:''}${r.status==='accepted'&&!rev?`<button class="btn primary small" type="button" data-pa="review" data-id="${t.id}">Leave a review</button>`:''}`,
+      `<div class="meta"><b>${esc(r.project)}</b>${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}</div><div class="rowb"><span class="tag ${s[0]}">${s[1]}</span><span class="meta">sent ${longDate(r.date)}</span></div>`)}).join('')
+    ||'<div class="card"><h2>No requests yet</h2><p class="meta">Open a profile on the map and send a contact request. Every request and its answer is listed here.</p></div>'}</div>`;
+}
+function ensureInbox(){}
+function oldInbox(){
+  if(!mine||Array.isArray(A.inbox))return;
+  A.inbox=[{id:1,company:'Example Wind Service GmbH',project:`${SK[mine.skills[0]]||mine.prof} campaign`,where:'Alexandroupoli, Greece',start:addW(mon,3).toISOString().slice(0,10),weeks:3,msg:'We need two people for a three-week campaign. Accommodation and a car are provided.',status:'new'},
+    {id:2,company:'Example Construction SA',project:`${mine.prof} for a six-week job`,where:'Plovdiv, Bulgaria',start:addW(mon,6).toISOString().slice(0,10),weeks:6,msg:'Day rate by agreement. Please confirm your certificates are valid for the whole period.',status:'new'}];
+  saveA();
+}
+function mePage(){
+  if(!mine)return `<div class="pwrap"><div class="phead"><h1>My area</h1></div><div class="card"><h2>You have no profile yet</h2><p class="meta">Register once. Afterwards this page shows requests from employers, your availability calendar and reminders before a certificate expires.</p><div class="rowb"><button class="btn primary" type="button" data-pa="reg">Register your profile</button></div></div></div>`;
+  ensureInbox(); const cs=certs(mine).slice().sort((a,b)=>a.m-b.m), bk=weeksOf(mine), rv=reviewsOf(mine), soon=cs.filter(c=>c.exp&&c.m<3).length;
+  return `<div class="pwrap"><div class="phead"><h1>My area</h1></div>
+    ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button>',`<div class="meta">Your profile is live. Employers with a paid account can find and open it.</div>`)}
+    ${verifyCard()}
+    <div class="card"><h2>Requests from employers</h2><p class="meta">Employers with a paid account already see your contact details; here you accept or decline the job.</p>
+      ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}</div><p>${esc(r.msg)}</p>
+        <div class="rowb">${r.status==='sent'?`<button class="btn primary small" type="button" data-pa="inAcc" data-id="${r.id}">Accept the job</button><button class="btn small" type="button" data-pa="inDec" data-id="${r.id}">Decline</button>`
+          :`<span class="tag ${r.status==='accepted'?'ok':''}">${r.status==='accepted'?'Accepted':'Declined'}</span>`}</div></div>`).join('')}</div>
+    <div class="card"><h2>Availability</h2><p class="meta">Click a week to mark it booked or free. Employers see this calendar on your profile.</p>
+      <div class="wkb">${bk.map((b,i)=>`<button type="button" data-pa="wk" data-id="${i}" aria-pressed="${b}"><span>${fmt(addW(mon,i))}</span>${b?'Booked':'Free'}</button>`).join('')}</div></div>
+    <div class="card"><h2>Certificates</h2><p class="meta">${cs.length?(soon?`${soon} certificate${soon>1?'s':''} need${soon>1?'':'s'} renewal soon. `:'Nothing expires in the next three months. ')+'You get an email 90, 30 and 7 days before an expiry date.':'You have not added any certificates yet.'}</p>
+      <ul class="certs">${cs.map(c=>{const d=c.exp?Math.round((c.exp-now)/864e5):null;return `<li><b>${esc(c.n)}</b><span><span class="tag ${c.m<0?'bad':c.m<3?'warn':'ok'}">${c.m<0?'Expired':c.m<3?'Expires soon':'Valid'}</span></span>
+        <small>${c.exp?(d<0?`Expired ${-d} days ago`:`Expires ${mY(c.exp)}, in ${d} days`):'No expiry date'} · ${c.ver?'verified':mine.pending?'being checked':'not verified'}</small></li>`}).join('')}</ul>
+      <div class="rowb"><button class="btn small" type="button" data-pa="reg">Add or renew a certificate</button></div></div>
+    <div class="card"><h2>Reviews</h2><ul class="tl">${rv.map(x=>`<li><small>${esc(x.date)}</small><b class="stars">${starTxt(x.stars)}</b><span>${esc(x.company)}</span><p>${esc(x.text)}</p></li>`).join('')||'<li><small>No reviews yet. Employers can review you after a job.</small></li>'}</ul></div></div>`;
+}
+function queuePage(){
+  const l=pendingList();
+  return `<div class="pwrap"><div class="phead"><h1>Verification queue</h1></div><p class="meta">Workers who paid for verification wait here. Check each certificate against the uploaded file or the issuer's register, then verify or decline.</p>
+    ${l.map(t=>pcard(t,`<button class="btn primary small" type="button" data-pa="approve" data-id="${t.id}">Verify profile and certificates</button><button class="btn small" type="button" data-pa="reject" data-id="${t.id}">Decline</button><button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button>`,
+      `<div class="tblw"><table class="tbl"><thead><tr><th>Certificate</th><th>Issued by</th><th>Number</th><th>Valid until</th></tr></thead><tbody>${certs(t).map(c=>`<tr><td>${esc(c.n)}</td><td>${esc(c.issuer||'–')}</td><td>${esc(c.no||'–')}</td><td>${c.exp?mY(c.exp):'No expiry'}${c.m<0?' <span class="tag bad">Expired</span>':''}</td></tr>`).join('')||'<tr><td colspan="4">No certificates added</td></tr>'}</tbody></table></div>`)).join('')
+    ||'<div class="card"><h2>Nothing to verify</h2><p class="meta">No paid verification is waiting.</p></div>'}</div>`;
+}
+function reportsPage(){
+  return `<div class="pwrap"><div class="phead"><h1>Reports</h1></div>${A.reports.map(r=>{const t=byId(r.techId),i=r.key;if(!t)return '';
+    return pcard(t,`<button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button><button class="btn small" type="button" data-pa="rpDismiss" data-id="${i}">Dismiss report</button><button class="btn small" type="button" data-pa="rpSuspend" data-id="${i}">Suspend profile</button>`,
+      `<div class="meta"><b>${esc(r.reason)}</b> · ${esc(r.date)}</div>${r.text?`<p>${esc(r.text)}</p>`:''}`)}).join('')||'<div class="card"><h2>No open reports</h2><p class="meta">Reports from employers appear here.</p></div>'}</div>`;
+}
+function renderPage(){syncVer();$('page').innerHTML=({join:joinPage,acct:acctPage,sub:subPage,projects:projectsPage,short:shortPage,reqs:reqsPage,me:mePage,queue:queuePage,reports:reportsPage}[view]||shortPage)()}
+function openOnMap(id,tab){const t=byId(id);if(!t||!canOpen(id))return;show('find');sheetTab=tab||'over';sel=null;if(!matches(t)){setSector(t.sector);setAvail('any')}customSite(t.city+', '+t.country,t.lat,t.lng,t.country);sel=id;renderSheet();update();fly()}
+$('page').addEventListener('change',e=>{
+  if(!pj)return;
+  if(e.target.id==='pjSector'){pj.sector=e.target.value;pj.skills.clear();$('pjSkills').innerHTML=pjChips()}
+  if(e.target.id==='pjCountry'){pj.country=e.target.value;$('pjRegion').innerHTML=pjRegions()}
+});
+$('page').addEventListener('click',e=>{
+  const c=e.target.closest('[data-pk]'); if(c&&pj){const k=c.dataset.pk;pj.skills.has(k)?pj.skills.delete(k):pj.skills.add(k);c.setAttribute('aria-pressed',pj.skills.has(k));return}
+  const b=e.target.closest('[data-pa]'); if(!b)return; const a=b.dataset.pa, id=b.dataset.id, v=i=>$(i).value.trim();
+  const err=(el,m)=>{$(el).hidden=false;$(el).textContent=m};
+  if(a==='coEdit'){coEdit=true}
+  else if(a==='coSave'){if(!v('coName'))return err('coErr','Enter the company name.');if(!/^\S+@\S+\.\S+$/.test(v('coEmail')))return err('coErr','Enter a valid email address.');A.company={name:v('coName'),vat:v('coVat'),addr:v('coAddr'),person:v('coPerson'),email:v('coEmail'),country:v('coCountry')};coEdit=false;toast('Company saved.')}
+  else if(a==='verBuy'){const u=new Date();u.setFullYear(u.getFullYear()+1);mine.verify={from:new Date().toISOString(),until:u.toISOString().slice(0,10)};saveMine(mine);toast('Verification ordered. An admin will check your certificates.')}
+  else if(a==='subOn'){if(!A.company||!PLANS[id])return;const u=new Date();u.setMonth(u.getMonth()+1);A.sub={plan:id,from:today(),until:u.toISOString().slice(0,10),opened:subOn()?A.sub.opened:[]};update();toast(PLANS[id].name+' is active.'+(id==='basic'?' You can open '+PLANS.basic.limit+' profiles this month.':' You can open every profile.'))}
+  else if(a==='subOff'){A.sub=null;sel=null;sheet.hidden=true;update()}
+  else if(a==='goFind'){return show('find')}
+  else if(a==='pjNew'){pj={sector:F.sector==='all'?'wind':F.sector,skills:new Set(F.skills),country:$('ctrySel').value||'Greece'}}
+  else if(a==='pjCancel'){pj=null}
+  else if(a==='pjSave'){if(!v('pjTitle'))return err('pjErr','Enter a project title.');
+    A.projects.unshift({id:Date.now(),title:v('pjTitle'),sector:pj.sector,skills:[...pj.skills],country:$('pjCountry').value,region:$('pjRegion').value,start:$('pjStart').value,weeks:v('pjWeeks')||'1',people:v('pjPeople')||'1',desc:v('pjDesc')});pj=null;toast('Project saved.')}
+  else if(a==='pjDel'){A.projects=A.projects.filter(p=>String(p.id)!==id);if(String(A.active)===id)A.active=null}
+  else if(a==='pjFind'){const p=A.projects.find(x=>String(x.id)===id);if(!p)return;A.active=p.id;saveA();show('find');setSector(p.sector);p.skills.forEach(s=>F.skills.add(s));drawSkillChips();setAvail('any');selectCountry(p.country);if(p.region!==''){$('regSel').value=p.region;selectRegion(+p.region)}return}
+  else if(a==='open'){return openOnMap(+id)}
+  else if(a==='review'){return openOnMap(+id,'rev')}
+  else if(a==='unshort'){A.shortlist=A.shortlist.filter(x=>x!==+id)}
+  else if(a==='demoAccept'){const r=A.requests.find(x=>x.techId===+id),t=byId(+id);if(r&&t){setReq(r,'accepted');t.req='ok';toast(t.name+' accepted your request.')}}
+  else if(a==='reg'){return openReg()}
+  else if(a==='inAcc'||a==='inDec'){const r=A.inbox.find(x=>String(x.id)===id);if(r){setReq(r,a==='inAcc'?'accepted':'declined');toast(a==='inAcc'?'Accepted. '+r.company+' is informed.':'Request declined.')}}
+  else if(a==='wk'){mine.booked=weeksOf(mine).slice();mine.booked[+id]=!mine.booked[+id];const f=mine.booked.indexOf(false);mine.free=f<0?12:f;saveMine(mine)}
+  else if(a==='approve'){const t=byId(+id);if(t){A.approved.push(t.real?vkey(t):t.id);toast(t.name+' is now verified.')}}
+  else if(a==='reject'){const t=byId(+id);if(t){A.verNo.push(t.real?vkey(t):t.id);toast('Verification declined. The profile stays visible as not verified.')}}
+  else if(a==='joinWrk'){setType('wrk');show('me');return openReg()}
+  else if(a==='joinEmp'){setType('emp');return show('sub')}
+  else if(a==='switchType'){const n=ACC.type==='wrk'?'emp':'wrk';setType(n);return show(n==='wrk'?'me':'sub')}
+  else if(a==='delAcct'){return deleteAccount()}
+  else if(a==='rpDismiss'){dropReport(id)}
+  else if(a==='rpSuspend'){const r=A.reports.find(x=>x.key===id);if(r){A.rejected.push(r.techId);dropReport(id);toast('Profile suspended and hidden from the search.')}}
+  saveA();renderPage();nav();
+});
+// ---------- access model: workers are free and see dots only; employers need a paid account to open profiles
+const SURN='Papadakis,Karagianni,Mehmet,Stavrou,Tsolakis,Vlachou,Dimitrov,Georgiev,Nikolov,Yılmaz,Demir,Aydın,Çelik,Popescu,Jovanovski,Hoxha,Weber,Becker,Nielsen,Hughes,Reid,García,Ferreira,Zieliński,Lindgren,Romano,Martin,Sharma,Tran,Mori,Nkosi,Benali,Khalil,Moreira,Ramírez,Johnson,Clark,Olsen,Turner,Vega,Lazaridis,Raptis,Mavridou,Bakas,Athanasiou,Dimou,Nikolaidis,Petrov,Kolev,Stoyanov,Vasilev,Ivanov,Kaya,Öztürk,Arslan,Tekin,Bulut,Doğan,Munteanu,Petrović,Krasniqi,Stojanov,Hoffmann,Wójcik,Bianchi,Sánchez,Murphy,Hassan,Patel,Ferreira,Davis,Asante'.split(',');
+T.forEach(t=>{if(!t.mine&&SURN[t.id-1])t.full=t.name.split(' ')[0]+' '+SURN[t.id-1]});
+const PLANS={basic:{name:'Basic',price:250,limit:6},full:{name:'Full access',price:900}};
+if(A.sub){if(!PLANS[A.sub.plan])A.sub.plan='full';if(!Array.isArray(A.sub.opened))A.sub.opened=[]}
+function subOn(){return !!(A.sub&&A.sub.until>=today())}
+function full(){return A.role==='adm'||(A.role==='emp'&&subOn()&&A.sub.plan==='full')}
+function lvl(){return full()?'full':A.role==='emp'&&subOn()?'basic':'none'}
+function left(){return Math.max(0,PLANS.basic.limit-A.sub.opened.length)}
+function vis(t){return full()||(t.mine&&A.role==='wrk')||(lvl()==='basic'&&A.sub.opened.includes(t.id))}
+function dn(t){return vis(t)?nameOf(t):'Worker no. '+(t.real?String(t.id).slice(-5):1000+t.id)}
+function nameOf(t){return t.full||t.name}
+function canOpen(id){
+  const t=byId(id); if(lvl()!=='none'||(t&&t.mine&&A.role==='wrk'))return true;
+  toast(A.role==='guest'?'Sign in to claude.ai to use accounts. See "Sign in" in the menu.':A.role==='emp'?'Profiles open with an employer account, from €'+PLANS.basic.price+' per month + VAT. See "Subscribe" in the menu.':'Only employer accounts can open profiles. You see where registered workers are, not who they are.');
+  return false;
+}
+function lockedSheet(t){
+  const n=left(), cs=certs(t);
+  sheet.innerHTML=`
+    <div class="shead">${av(t,1)}<div><h2>${esc(dn(t))}</h2><p>${esc(t.prof)}</p></div><button class="btn small" type="button" data-act="close">Close</button></div>
+    <div class="row" style="flex-wrap:wrap"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${verTag(t)}</div>
+    <dl class="stats"><div><dt>To site</dt><dd>${nf(hav(site,t))} km</dd></div><div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div><div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div></dl>
+    <div><h3>Skills</h3><ul class="skl">${t.skills.map(s=>{const i=(t.skillInfo&&t.skillInfo[s])||{lvl:1,yrs:0};return `<li><b>${esc(SK[s]||s)}</b>${lvlHTML(i.lvl)}<span class="yrs">${i.yrs?i.yrs+(i.yrs==1?' year':' years'):''}</span></li>`}).join('')}</ul></div>
+    <dl class="facts"><dt>Trade</dt><dd>${esc(SECTORS[t.sector].name)}</dd><dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd><dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd><dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd></dl>
+    <div class="box"><h3>Name, contact details and full CV are closed</h3>
+      ${n>0?`<p>Opening shows the name, phone, email, work history and every certificate with its number and file.</p><p class="lock">Uses 1 of your ${PLANS.basic.limit} openings this month. You have ${n} left. An opened profile stays open until your month ends.</p>
+        <button class="btn primary" type="button" data-act="unlock">Open this profile</button>`
+      :`<p>You have used all ${PLANS.basic.limit} openings of this month.</p><p class="lock">Full access opens every profile without a limit.</p><button class="btn primary" type="button" data-act="goSub">See Full access</button>`}</div>`;
+  sheet.hidden=false;
+}
+function lockedList(){
+  if(lvl()==='basic'){const n=left();$('rList').insertAdjacentHTML('afterbegin',`<li class="quota"><span>Basic plan: <b>${n} of ${PLANS.basic.limit}</b> profile openings left this month</span><button class="btn small" type="button" data-go="sub">Upgrade</button></li>`);return}
+  if(full())return; const by={}; inR.forEach(t=>by[t.prof]=(by[t.prof]||0)+1);
+  const rows=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([p,n])=>`<li><span>${esc(p)}</span><b>${n}</b></li>`).join('');
+  $('rEmpty').hidden=true;
+  $('rList').innerHTML=`<li class="lockli"><div class="lockbox">
+    <b>${inR.length?`${inR.length} registered ${inR.length===1?'worker matches':'workers match'} here`:'No registered worker matches here yet'}</b>
+    ${rows?`<ul class="cnt">${rows}</ul>`:''}
+    ${A.role==='emp'?`<p class="meta">Names, contact details, CVs and certificates are visible with an employer account.</p>
+      <div class="price">from <b>€${PLANS.basic.price}</b> per month + VAT</div><button class="btn primary" type="button" data-go="sub">See the employer account</button>`
+     :`<p class="meta">As a worker you see where registered workers are, but not who they are. Only employers with a paid account can open profiles.</p>
+      <button class="btn small" type="button" data-go="${A.role==='guest'?'acct':A.role==='new'?'join':mine?'me':'reg'}">${A.role==='guest'?'Sign in':mine?'Open my area':'Register free'}</button>`}</div></li>`;
+}
+$('rList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;b.dataset.go==='reg'?openReg():show(b.dataset.go)});
+function contactHTML(t){
+  const first=t.name.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-z]/g,'')||'worker';
+  const em=t.mine?(t.email||''):`${first}.${t.id}@example.com`, ph=t.mine?(t.phone||''):`+00 555 01${String(t.id).padStart(2,'0')}`;
+  const row=v=>v?`<div class="contact"><code>${esc(v)}</code><button class="btn small" type="button" data-copy="${esc(v)}">Copy</button></div>`:'';
+  return `<div class="box"><h3>Contact</h3>${row(em)}${row(ph)||'<p class="lock">No phone number entered.</p>'}${t.mine?'':'<p class="lock">Example contact details.</p>'}</div>`;
+}
+function companyBox(){
+  const co=A.company;
+  return !co||coEdit?`<div class="card"><h2>Your company</h2><p class="meta">Used for your invoice and shown to workers when you send a job request.</p>
+      <div class="grid2"><div class="field"><label class="flabel" for="coName">Company name</label><input id="coName" value="${esc(co?co.name:'')}"></div>
+      <div class="field"><label class="flabel" for="coVat">VAT number</label><input id="coVat" value="${esc(co?co.vat||'':'')}"></div>
+      <div class="field"><label class="flabel" for="coPerson">Contact person</label><input id="coPerson" value="${esc(co?co.person:'')}"></div>
+      <div class="field"><label class="flabel" for="coEmail">Email</label><input id="coEmail" type="email" value="${esc(co?co.email:'')}"></div>
+      <div class="field"><label class="flabel" for="coAddr">Invoice address</label><input id="coAddr" value="${esc(co?co.addr||'':'')}"></div>
+      <div class="field"><label class="flabel" for="coCountry">Country</label><input id="coCountry" value="${esc(co?co.country:'')}"></div></div>
+      <p class="err" id="coErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="coSave">Save company</button></div></div>`
+    :`<div class="card slim"><div><b>${esc(co.name)}</b><div class="meta">${esc([co.vat&&'VAT '+co.vat,co.person,co.email,co.country].filter(Boolean).join(' · '))}</div></div><button class="btn small" type="button" data-pa="coEdit">Edit</button></div>`;
+}
+function subPage(){
+  const on=subOn(), cur=on?A.sub.plan:null, eur=n=>'€'+n.toLocaleString('en-GB',{minimumFractionDigits:2});
+  const card=(k,items)=>{const p=PLANS[k];return `<div class="card plan1${cur===k?' cur':''}"><h2>${p.name}</h2><div class="price big"><b>€${p.price}</b> per month + VAT</div>
+      <ul class="incl">${items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      <div class="rowb">${cur===k?'<span class="tag ok">Your current plan</span>':`<button class="btn ${k==='full'?'primary':''}" type="button" data-pa="subOn" data-id="${k}"${A.company?'':' disabled'}>Demo: ${cur?'switch to':'start'} ${p.name}</button>`}</div></div>`};
+  return `<div class="pwrap"><div class="phead"><h1>Employer account</h1></div>
+    <div class="plans">${card('basic',[`Open up to <b>${PLANS.basic.limit} profiles</b> per month`,'Search the map worldwide by trade, skill, level and availability','See every match without name: profession, skills, level, town, availability, rating','For opened profiles: full name, phone, email, CV and certificates','Projects, shortlist, job requests and reviews'])}
+      ${card('full',['Open <b>every profile</b>, no limit','All names visible directly in the result list','Full name, phone, email, CV and certificates for everyone','Everything in Basic'])}</div>
+    <p class="meta">VAT is added at the rate for your company's country. Example with 24% VAT: Basic ${eur(PLANS.basic.price*1.24)}, Full access ${eur(PLANS.full.price*1.24)} per month.${A.company?' This prototype takes no payment.':' Save your company details below to start a plan; they go on the invoice.'}</p>
+    ${on?`<div class="card"><h2>${PLANS[cur].name} is active</h2><p class="meta">Paid until ${longDate(A.sub.until)}, renews monthly. Invoice: ${eur(PLANS[cur].price)} + VAT to ${esc(A.company?A.company.name:'your company')}.${cur==='basic'?` Profile openings used this month: ${A.sub.opened.length} of ${PLANS.basic.limit}.`:''}</p>
+      <div class="rowb"><button class="btn primary small" type="button" data-pa="goFind">Find people</button><button class="btn small" type="button" data-pa="subOff">Demo: end the subscription</button></div></div>`
+      :`<div class="card"><h2>Without a plan</h2><p class="meta">You see dots on the map and how many workers match in an area. Profiles, names and contact details stay closed.</p></div>`}
+    ${companyBox()}
+    <div class="card"><h2>For workers it stays free</h2><p class="meta">Workers register and keep their profile at no cost. They see dots on the map but cannot open other workers' profiles. The Verified badge is an optional extra for €${VPRICE} per year + VAT.</p></div></div>`;
+}
+// ---------- optional paid verification for workers
+const VPRICE=15;
+if(!Array.isArray(A.verNo))A.verNo=[];
+function vstat(t){
+  if(t.real){if(!t.verify||!t.verify.from)return 'none';const k=vkey(t);return A.approved.includes(k)?'ok':A.verNo.includes(k)?'none':'wait'}
+  if(A.approved.includes(t.id))return 'ok'; if(A.verNo.includes(t.id))return 'none'; if([44,58,67].includes(t.id))return 'wait';
+  return t.id%5===3?'none':'ok';
+}
+function syncVer(){T.forEach(t=>{const s=vstat(t);t.pending=s==='wait';t.unver=s==='none'})}
+function isVer(t){return !t.pending&&!t.unver}
+function verTag(t){return (isVer(t)?'<span class="tag ok">✓ Verified</span>':t.pending?'<span class="tag warn">Verification in progress</span>':'<span class="tag">Not verified</span>')+(t.real?'':'<span class="tag">Example profile</span>')}
+function verifyCard(){
+  const s=vstat(mine), has=(mine.certList||[]).length>0;
+  if(s==='ok')return `<div class="card"><h2>You are verified</h2><p class="meta">Your certificates were checked. The Verified badge is on your profile until ${longDate(mine.verify.until)} and you appear before unverified profiles in every search.</p></div>`;
+  if(s==='wait')return `<div class="card"><h2>Verification in progress</h2><p class="meta">Paid on ${longDate(mine.verify.from)}. An admin is checking each certificate with its issuer. You get an email when it is done.</p></div>`;
+  return `<div class="card plan"><div><h2>Get the Verified badge</h2><div class="price big"><b>€${VPRICE}</b> per year + VAT</div><p class="meta">Optional. Your profile stays free and visible without it.</p></div>
+    <div style="display:grid;gap:12px"><ul class="incl"><li>We check every certificate with its issuer (WINDA for GWO)</li><li>The Verified badge on your profile and in the result list</li><li>You appear before unverified profiles in every search</li></ul>
+    <div class="rowb"><button class="btn primary" type="button" data-pa="verBuy"${has?'':' disabled'}>Demo: buy verification</button></div>
+    <p class="lock">${has?'This prototype takes no payment.':'Add at least one certificate to your profile first.'}</p></div></div>`;
+}
+$('verOnly').addEventListener('change',e=>{F.verOnly=e.target.checked;update()});
+syncVer();
+// ---------- accounts: sign-in comes from claude.ai, data lives in the page's shared database
+// accounts/<id>        account type (worker or employer), written by its owner
+// workers/<id>         a worker's public profile, written by its owner
+// requests/<from-tech> job requests between an employer and a worker
+// reviews/<auto>       reviews employers leave after a job
+// reports/<id>         one document per reporter, readable by the admin only
+// admin/state          verification decisions and suspensions, written by the admin
+// data/users/<id>/app  an employer's company, projects, shortlist and plan (private)
+const ACC={state:'loading',uid:null,owner:false,type:null,name:'',email:null,avatar:'',db:null};
+const vkey=t=>t.id+':'+t.verify.from;
+const clone=o=>JSON.parse(JSON.stringify(o));
+function dbErr(e){toast(e&&e.code==='quota_exceeded'?'The shared database is full. Ask the owner to remove old data.':'Could not save. Check your connection and that you have Contributor access.')}
+// one write at a time per document; skip writes that change nothing
+const wq={}, last={};
+function put(path,data){const j=JSON.stringify(data);if(last[path]===j)return;last[path]=j;
+  wq[path]=(wq[path]||Promise.resolve()).then(()=>ACC.db.doc(path).set(JSON.parse(j))).catch(e=>{delete last[path];dbErr(e)})}
+function savePriv(){if(ACC.db)put('data/users/'+ACC.uid+'/app',{company:A.company,projects:A.projects,shortlist:A.shortlist,sub:A.sub,active:A.active,view:A.view})}
+function saveAdmin(){if(ACC.db&&ACC.owner)put('admin/state',{approved:A.approved,verNo:A.verNo,rejected:A.rejected})}
+function saveMine(t){if(!ACC.db)return;const o=clone(t);['dist','in','px','py','pending','unver','req','mine','real','uid','id'].forEach(k=>delete o[k]);o.num=t.id;put('workers/'+ACC.uid,o)}
+function setType(type){ACC.type=type;if(ACC.db)put('accounts/'+ACC.uid,{type,since:today()});applyRole(true)}
+function setReq(r,status){r.status=status;if(ACC.db)ACC.db.doc('requests/'+r.id).update({status}).catch(dbErr)}
+let myReports=[];
+function sendReport(r){myReports=myReports.concat([r]);put('reports/'+ACC.uid,{items:myReports})}
+function dropReport(key){const r=A.reports.find(x=>x.key===key);if(!r)return;A.reports=A.reports.filter(x=>x!==r);
+  const items=A.reports.filter(x=>x.by===r.by).map(({key,by,...x})=>x);put('reports/'+r.by,{items})}
+async function deleteAccount(){
+  if(!ACC.db||!confirm('Delete your account? Your profile, company details, projects and shortlist are removed.'))return;
+  const d=ACC.db;
+  try{await Promise.all(['workers/','accounts/','reports/'].map(p=>d.doc(p+ACC.uid).delete()).concat(d.doc('data/users/'+ACC.uid+'/app').delete()))}catch(e){return dbErr(e)}
+  Object.keys(last).forEach(k=>delete last[k]); Object.assign(A,{company:null,projects:[],shortlist:[],sub:null,active:null,view:null});
+  removeMine(); ACC.type=null; applyRole(true); toast('Your account was deleted.');
+}
+function regBtn(){const b=$('openReg'),r=A.role;b.hidden=!(r==='new'||r==='wrk');b.textContent=r==='new'?'Create account':mine?'Edit my profile':'Create my profile'}
+function acctChip(){const img=$('acctImg');
+  $('acctName').textContent=ACC.state==='loading'?'Signing in…':ACC.state==='out'?'Sign in':(ACC.name||'Your account')+(ACC.owner?' · Admin':ACC.type==='wrk'?' · Worker':ACC.type==='emp'?' · Employer':'');
+  img.hidden=ACC.state!=='in'||!ACC.avatar; if(!img.hidden)img.src=ACC.avatar}
+let started=false;
+function applyRole(go){
+  const r=ACC.state!=='in'?'guest':ACC.owner?(A.view||'adm'):ACC.type||'new';
+  if(r===A.role&&started&&!go){nav();return}
+  A.role=r; started=true; sel=null; sheet.hidden=true;
+  show(r==='guest'?'find':r==='new'?'join':r==='wrk'?'me':r==='emp'?'find':'queue'); update();
+}
+function refresh(){syncVer();nav();update();
+  const busy=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#page input,#page textarea,#page select');
+  if(view!=='find'&&!busy&&!pj&&!coEdit)renderPage()}
+function okTech(o){return o&&typeof o.name==='string'&&SECTORS[o.sector]&&Array.isArray(o.skills)&&o.skillInfo&&typeof o.skillInfo==='object'&&Array.isArray(o.certList)&&isFinite(o.lat)&&isFinite(o.lng)&&isFinite(o.num)}
+function markReqs(){T.forEach(t=>{const r=A.requests.find(x=>x.techId===t.id);t.req=r?(r.status==='accepted'?'ok':r.status==='sent'?'sent':undefined):undefined})}
+function joinPage(){
+  return `<div class="pwrap"><div class="phead"><h1>Create your account</h1></div>
+    <p class="meta">You are signed in with your claude.ai account. Choose how you use Human Resources WWW. You can change it later under your name at the top.</p>
+    <div class="joins"><div class="card"><h2>I am looking for work</h2><p class="meta">Free. Create your profile with skills, certificates and availability. Employers find you on the map and send you job requests.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinWrk">Register as worker</button></div></div>
+    <div class="card"><h2>I am hiring</h2><p class="meta">Search the map by trade, skill and availability, save a shortlist, post projects and send job requests.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinEmp">Register as employer</button></div></div></div></div>`;
+}
+function acctPage(){
+  if(ACC.state!=='in')return `<div class="pwrap"><div class="phead"><h1>Sign in</h1></div><div class="card"><h2>${ACC.state==='loading'?'Signing in…':'You are not signed in'}</h2>
+    <p class="meta">Accounts use your claude.ai sign-in, so there is no separate password. Open this page while signed in to claude.ai. The owner must share it with you as <b>Contributor</b> or higher so you can register and save.</p>
+    <p class="meta">Until then you can look at the map. Names and contact details stay closed.</p></div></div>`;
+  const tn={wrk:'Worker',emp:'Employer'}[ACC.type]||'Not chosen yet';
+  return `<div class="pwrap"><div class="phead"><h1>Your account</h1></div>
+    <div class="card"><div class="who">${ACC.avatar?`<img src="${esc(ACC.avatar)}" alt="">`:''}<div><b>${esc(ACC.name||'Signed in')}</b><div class="meta">${esc(ACC.email||'')}</div></div></div>
+      <p class="meta">Signed in with claude.ai. ${ACC.owner?'You own this page, so you are the <b>admin</b>. Use "View as" at the top to try the worker and employer screens.':'Account type: <b>'+tn+'</b>.'}</p>
+      <div class="rowb">${!ACC.owner&&ACC.type?`<button class="btn small" type="button" data-pa="switchType">Switch to ${ACC.type==='wrk'?'employer':'worker'} account</button>`:''}${!ACC.owner&&!ACC.type?'<button class="btn primary small" type="button" data-pa="goJoin">Choose account type</button>':''}
+      <button class="btn small" type="button" data-pa="delAcct">Delete my account and data</button></div></div>
+    <div class="card"><h2>Who sees what</h2><p class="meta">Worker profiles, job requests and reviews are shared with everyone who has access to this test page. Your company details, projects, shortlist and plan are private to you. Reports go to the admin only.</p></div></div>`;
+}
+$('page').addEventListener('click',e=>{const b=e.target.closest('[data-pa="goJoin"]');if(b)show('join')});
+async function boot(){
+  const use=n=>window.claude&&typeof window.claude.use==='function'?window.claude.use(n).catch(()=>null):Promise.resolve(null);
+  const [user,db]=await Promise.all([use('user'),use('db')]);
+  const me=user?await user.me():null;
+  if(!db||!me||!me.id){ACC.state='out';applyRole(true);return}
+  Object.assign(ACC,{state:'in',uid:me.id,owner:!!me.isOwner,name:me.name||'',email:me.email||null,avatar:me.avatarUrl||'',db});
+  let gotAcc=false,gotPriv=false;
+  const ready=()=>{if(gotAcc&&gotPriv)applyRole()};
+  db.doc('accounts/'+ACC.uid).onSnapshot(s=>{const d=s.exists?s.data():null;ACC.type=d&&(d.type==='wrk'||d.type==='emp')?d.type:null;gotAcc=true;ready();refresh()},()=>{gotAcc=true;ready()});
+  db.doc('data/users/'+ACC.uid+'/app').onSnapshot(s=>{
+    if(!s.metadata.hasPendingWrites){const d=s.exists?s.data():{};
+      A.company=d.company||null;A.projects=Array.isArray(d.projects)?clone(d.projects):[];A.shortlist=Array.isArray(d.shortlist)?d.shortlist.slice():[];
+      A.sub=d.sub&&PLANS[d.sub.plan]?clone(d.sub):null;if(A.sub&&!Array.isArray(A.sub.opened))A.sub.opened=[];A.active=d.active||null;A.view=['emp','wrk','adm'].includes(d.view)?d.view:null;
+      last['data/users/'+ACC.uid+'/app']=JSON.stringify({company:A.company,projects:A.projects,shortlist:A.shortlist,sub:A.sub,active:A.active,view:A.view})}
+    gotPriv=true;ready();refresh()},()=>{gotPriv=true;ready()});
+  db.collection('workers').onSnapshot(q=>{
+    const keep=T.filter(t=>!t.real);
+    const real=q.docs.map(d=>{const o=d.data();if(!okTech(o))return null;const t=clone(o);t.id=o.num;t.uid=d.id;t.real=true;t.mine=d.id===ACC.uid;t.photo=okPhoto(o.photo);
+      if(!Array.isArray(t.booked))t.booked=null;if(!t.full)t.full=t.name;return t}).filter(Boolean);
+    T.splice(0,T.length,...keep,...real); mine=T.find(t=>t.mine)||null; if(mine&&!regPhoto)regPhoto=mine.photo;
+    markReqs(); refresh();
+  });
+  db.collection('requests').onSnapshot(q=>{
+    const all=q.docs.map(d=>({...clone(d.data()),id:d.id}));
+    A.requests=all.filter(r=>r.from===ACC.uid); A.inbox=all.filter(r=>r.to===ACC.uid).reverse(); markReqs(); refresh();
+  });
+  db.collection('reviews').onSnapshot(q=>{A.reviews=q.docs.map(d=>clone(d.data())).filter(r=>isFinite(r.techId)&&r.stars>=1&&r.stars<=5);refresh()});
+  db.collection('reports').onSnapshot(q=>{
+    A.reports=[];q.docs.forEach(d=>{const it=Array.isArray(d.data().items)?d.data().items:[];if(d.id===ACC.uid)myReports=clone(it);
+      it.forEach((r,i)=>A.reports.push({...clone(r),by:d.id,key:d.id+'~'+i}))});
+    refresh();
+  });
+  db.doc('admin/state').onSnapshot(s=>{const d=s.exists?s.data():{};['approved','verNo','rejected'].forEach(k=>A[k]=Array.isArray(d[k])?d[k].slice():[]);
+    last['admin/state']=JSON.stringify({approved:A.approved,verNo:A.verNo,rejected:A.rejected});refresh()});
+}
+boot();
+
+nav();
+
+let tt; function toast(m){const el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>el.hidden=true,4200)}
+
+update();
+if(hasD3)svg.call(zoom.transform,fit(path.bounds(ringGeo()),.8));
+})();
+</script>
+
+</body></html>
