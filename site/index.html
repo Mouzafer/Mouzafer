@@ -241,6 +241,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 .role button{border:0;border-left:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);background:transparent;color:var(--mast-muted);font-weight:600;font-size:12.5px;padding:6px 10px;cursor:pointer}
 .role button[aria-pressed="true"]{background:var(--mast-ink);color:var(--mast)}
 .mstats{display:none}
+.welcome{display:grid;gap:12px;font-size:14.5px;line-height:1.55}
 .seg.two{grid-template-columns:repeat(2,1fr)}
 .linkbtn{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
 .pwrap .card h2+p.meta{margin-bottom:6px}
@@ -542,6 +543,18 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
     <p class="err" id="auErr" hidden></p><p class="lock" id="auMsg" role="status" hidden></p>
     <div class="rowb between"><button class="btn primary" type="submit" id="auGo">Log in</button><button class="btn small" type="button" id="auForgot">Forgot password?</button></div>
   </form>
+</div>
+<div class="overlay" id="welcomeOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" style="width:min(560px,100%)">
+    <h2 id="welcomeTitle">Welcome to Human Resources WWW</h2>
+    <div class="welcome">
+      <p><b>Free to use.</b> Using this website is completely free at the moment. We will never ask you for payment or credit card details. If this ever changes, we will announce it clearly in advance.</p>
+      <p><b>Your data, your choice.</b> You decide what personal information you share. When you create a profile, approved employers can see your full profile, including your name and contact details, so they can offer you work. Other visitors only see your profession and town, never your name.</p>
+      <p><b>Work close to home.</b> Our goal is to help you find work near where you live, so you don't have to travel far. If you are happy to work abroad or in another country, say so in your profile.</p>
+      <p><b>Keep your profile up to date.</b> Set your location and keep your availability calendar current, so employers know when to contact you.</p>
+    </div>
+    <div class="rowb"><button class="btn primary" type="button" id="welcomeOk">I understand</button></div>
+  </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -1658,7 +1671,7 @@ function joinPage(){
     <div class="joins"><div class="card"><h2>I am looking for work</h2><p class="meta">Free. Create your profile with skills, certificates and availability. Employers find you on the map and send you job requests.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinWrk">I am a worker</button></div></div>
     <div class="card"><h2>I am hiring</h2><p class="meta">Free during launch. Search the map by trade, skill and availability, post projects and send job requests once we have approved your company.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinEmp">I am an employer</button></div></div></div></div>`;
 }
-const legalLinks='<p class="meta"><button type="button" class="linkbtn" data-page="privacy">Privacy notice</button> · <button type="button" class="linkbtn" data-page="terms">Terms</button></p>';
+const legalLinks='<p class="meta"><button type="button" class="linkbtn" data-welcome="1">Welcome notice</button> · <button type="button" class="linkbtn" data-page="privacy">Privacy notice</button> · <button type="button" class="linkbtn" data-page="terms">Terms</button></p>';
 function acctPage(){
   if(!LIVE)return `<div class="pwrap"><div class="phead"><h1>Accounts</h1></div><div class="card"><h2>Not connected yet</h2><p class="meta">This copy of the site is not connected to its database, so nobody can register. Add the Supabase details to config.js (see SETUP.md).</p></div>${legalLinks}</div>`;
   if(ACC.state!=='in')return `<div class="pwrap"><div class="phead"><h1>Log in</h1></div><div class="card"><h2>${ACC.state==='loading'?'Loading…':'Log in or create a free account'}</h2>
@@ -1747,7 +1760,7 @@ $('page').addEventListener('click',async e=>{const b=e.target.closest('[data-pa]
     if(error)return toast(error.message||'Could not change the password.');$('pwNew').value='';return toast('Your new password is saved.')}
   if(a==='empOk'||a==='empNo')return act(()=>run(sb.from('employers').update({approved:a==='empOk'}).eq('id',b.dataset.id)),a==='empOk'?'Employer approved.':'Approval removed.');
 },true);
-document.addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(!b)return;e.preventDefault();closeAuth();$('regOverlay').hidden=true;show(b.dataset.page)});
+document.addEventListener('click',e=>{if(e.target.closest('[data-welcome]'))return openWelcome();const b=e.target.closest('[data-page]');if(!b)return;e.preventDefault();closeAuth();$('regOverlay').hidden=true;show(b.dataset.page)});
 // any town in the world, through the OpenStreetMap search service Photon
 const GEO={};let geoT=null;
 function findTown(v){const k=String(v||'').trim().toLowerCase();if(!k)return null;
@@ -1768,6 +1781,10 @@ async function boot(){
   addEventListener('focus',()=>{if(ACC.state==='in')loadAll()});
   setInterval(()=>{if(ACC.state==='in'&&!document.hidden)loadAll()},90000);
 }
+// welcome notice on the first visit (remembered in this browser)
+function openWelcome(){$('welcomeOverlay').hidden=false;setTimeout(()=>$('welcomeOk').focus(),0)}
+$('welcomeOk').onclick=()=>{$('welcomeOverlay').hidden=true;store.set('hrwww.welcome',1)};
+if(!store.get('hrwww.welcome'))openWelcome();
 boot();
 
 nav();
