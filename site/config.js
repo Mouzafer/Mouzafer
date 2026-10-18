@@ -2,8 +2,8 @@
 window.HRCFG = {
   // Supabase -> Project Settings -> API. The anon key is meant to be public:
   // the access rules in supabase/schema.sql protect the data.
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://zgcurwepgzhbaduvwcgs.supabase.co',
+  supabaseAnonKey: 'sb_publishable_apjF2Y2GF3hMfxGYyVRSHw_4r8Exyvc',
 
   // Who runs the site. Shown in the Privacy notice and Terms (required in the EU).
   operator: {
