@@ -36,6 +36,8 @@ h1,h2,h3,p,dl,dd{margin:0}
 
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
 .mast{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:10px 18px;background:var(--mast);color:var(--mast-ink)}
+.brand{color:inherit;text-decoration:none;cursor:pointer;border-radius:8px}
+.brand:hover span{text-decoration:underline;text-underline-offset:4px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em}
 .brand svg{flex:none}
 .brand b{color:var(--accent);font-weight:800}
@@ -313,10 +315,10 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 
 <div class="app">
   <header class="mast">
-    <div class="brand">
+    <a class="brand" id="homeBtn" href="./" title="Home" aria-label="Human Resources WWW, home">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="var(--accent)"/><path d="M15 6.5c-3.6 0-6.5 2.8-6.5 6.3 0 4.6 6.5 10.7 6.5 10.7s6.5-6.1 6.5-10.7c0-3.5-2.9-6.3-6.5-6.3z" fill="#fff"/><circle cx="15" cy="12.8" r="2.6" fill="var(--accent)"/></svg>
       <span>Human Resources <b>WWW</b></span>
-    </div>
+    </a>
     <nav class="mnav" id="mnav" aria-label="Sections"></nav>
     <p class="mstats" id="mstats"></p>
     <div class="role" id="roleSeg" aria-label="View as" hidden><span>View as</span><button type="button" data-r="emp">Employer</button><button type="button" data-r="wrk">Worker</button><button type="button" data-r="adm">Admin</button></div>
@@ -1247,6 +1249,7 @@ function placeMine(t){ T.splice(0,T.length,...T.filter(x=>!x.mine)); T.push(t); 
 function removeMine(){ T.splice(0,T.length,...T.filter(x=>!x.mine)); mine=null; dbDeleteWorker(); store.set('hrwww.reg2',null); $('regForm').reset(); R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}; regOem.clear(); syncChips('rgOem',regOem); regPhoto=null; regSectorChanged(false); renderLists(); closeProfile(); toast('Your profile was removed.'); }
 loadDraft();
 $('openReg').onclick=()=>A.role==='guest'?openAuth('signup'):A.role==='new'?show('join'):openReg();
+$('homeBtn').onclick=e=>{e.preventDefault();$('regOverlay').hidden=true;$('authOverlay').hidden=true;if(sel)closeProfile();show('find');$('mainWrap').scrollIntoView?window.scrollTo(0,0):0};
 $('acctBtn').onclick=()=>ACC.state==='out'&&LIVE?openAuth('login'):show('acct');
 function closeReg(){$('regOverlay').hidden=true;$('openReg').focus()}
 $('closeReg').onclick=closeReg;
@@ -1317,8 +1320,8 @@ function sendRequest(t){
 // navigation between the map and the pages
 let view='find', pj=null, coEdit=false;
 function nav(){
-  const r=A.role, items=r==='guest'?[['find','Map'],['acct','Log in']]:r==='new'?[['join','Create account'],['find','Map']]:r==='emp'?[['find','Find people'],['projects',`Projects (${A.projects.length})`],['short',`Shortlist (${A.shortlist.length})`],['reqs',`Requests (${A.requests.length})`],['sub','Company']]
-    :r==='wrk'?[['me','My area'],['find','Map']]:[['queue',`Verification queue (${pendingList().length})`],['emps',`Employers (${ACC.emps.filter(e=>!e.approved&&e.company&&e.company.name).length})`],['reports',`Reports (${A.reports.length})`],['find','Map']];
+  const r=A.role, items=r==='guest'?[['find','Home'],['acct','Log in']]:r==='new'?[['join','Create account'],['find','Home']]:r==='emp'?[['find','Find people'],['projects',`Projects (${A.projects.length})`],['short',`Shortlist (${A.shortlist.length})`],['reqs',`Requests (${A.requests.length})`],['sub','Company']]
+    :r==='wrk'?[['me','My area'],['find','Home']]:[['queue',`Verification queue (${pendingList().length})`],['emps',`Employers (${ACC.emps.filter(e=>!e.approved&&e.company&&e.company.name).length})`],['reports',`Reports (${A.reports.length})`],['find','Home']];
   $('mnav').innerHTML=items.map(x=>`<button type="button" data-v="${x[0]}"${x[0]===view?' aria-current="page"':''}>${x[1]}</button>`).join('');
   $('roleSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===r));
   $('roleSeg').hidden=!ACC.owner; regBtn(); acctChip();
