@@ -348,6 +348,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
         <div class="field"><label class="flabel" for="sectorSel">Trade</label><select id="sectorSel"></select></div>
         <div class="field"><label class="flabel" for="profSel">Profession</label><select id="profSel"></select></div>
       </div>
+      <div class="field"><label class="flabel" for="qText">Search trade or profession</label><input id="qText" type="search" list="qList" autocomplete="off" placeholder="Type any trade, profession or skill"><datalist id="qList"></datalist></div>
       <div id="skillBlock">
         <span class="flabel">Skills needed</span>
         <div class="chips" id="skillChips"></div>
@@ -416,6 +417,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
         <h3>Your work</h3>
         <div class="grid2">
           <div class="field"><label class="flabel" for="rgSector">Trade</label><select id="rgSector"></select></div>
+          <div class="field" id="rgTradeOtherWrap" hidden><label class="flabel" for="rgTradeOther">Your trade</label><input id="rgTradeOther" maxlength="60" placeholder="e.g. Shipbuilding, Oil & gas, Factory work"></div>
           <div class="field"><label class="flabel" for="rgProf">Profession</label><select id="rgProf"></select></div>
           <div class="field" id="rgProfOtherWrap" hidden><label class="flabel" for="rgProfOther">Your profession</label><input id="rgProfOther" placeholder="e.g. Tunnel miner"></div>
           <div class="field"><label class="flabel" for="rgLevel">Level</label>
@@ -573,8 +575,10 @@ const SECTORS={
  weld:{name:'Welding & steel',profs:['Welder','Pipe welder','Steel erector','Fabricator / boilermaker','NDT inspector','Welding inspector'],skills:{w_mig:'MIG / MAG (135/136)',w_tig:'TIG (141)',w_mma:'MMA (111)',w_pipe:'Pipe welding',w_struct:'Structural steel',w_ndt:'NDT (UT, MT, PT)'},certs:['ISO 9606-1 welder qualification','Site safety induction card','ISO 9712 NDT Level 2','Welding inspector certificate']},
  plant:{name:'Plant & lifting',profs:['Mobile crane operator','Tower crane operator','Excavator operator','Rigger / slinger','Telehandler operator','Heavy truck driver','Lifting supervisor'],skills:{p_mcrane:'Mobile crane',p_tcrane:'Tower crane',p_exc:'Excavator',p_rig:'Rigging & slinging',p_tele:'Telehandler / forklift',p_hgv:'Heavy transport'},certs:['Crane / plant operator licence','Rigger and slinger certificate','Site safety induction card']},
  finish:{name:'Finishing & interiors',profs:['Carpenter / joiner','Painter / industrial coater','Plasterer / drywall installer','Tiler','Roofer','Glazier / façade installer'],skills:{f_carp:'Carpentry',f_paint:'Painting & coating',f_dry:'Drywall & plaster',f_tile:'Tiling',f_roof:'Roofing & waterproofing',f_facade:'Façade & glazing'},certs:['Site safety induction card','Working at height certificate','Trade qualification / diploma']},
- mgmt:{name:'Site management & HSE',profs:['Site manager','Foreman / supervisor','HSE officer','QA / QC inspector','Project planner','Quantity surveyor'],skills:{g_site:'Site supervision',g_hse:'Health & safety',g_qa:'Quality control',g_plan:'Planning & scheduling',g_cost:'Cost & quantities',g_comm:'Commissioning'},certs:['HSE qualification (NEBOSH or national)','First aid certificate','Site safety induction card']}
+ mgmt:{name:'Site management & HSE',profs:['Site manager','Foreman / supervisor','HSE officer','QA / QC inspector','Project planner','Quantity surveyor'],skills:{g_site:'Site supervision',g_hse:'Health & safety',g_qa:'Quality control',g_plan:'Planning & scheduling',g_cost:'Cost & quantities',g_comm:'Commissioning'},certs:['HSE qualification (NEBOSH or national)','First aid certificate','Site safety induction card']},
+ other:{name:'Other trade',profs:[],skills:{o_install:'Installation & assembly',o_maint:'Maintenance & repair',o_ops:'Machine & equipment operation',o_lead:'Team leading',o_safety:'Health & safety',o_qa:'Quality control',o_drive:'Driving & logistics'},certs:['Site safety induction card','First aid certificate']}
 };
+const tradeName=t=>t.sector==='other'&&t.trade?t.trade:(SECTORS[t.sector]||{name:''}).name;
 const PROFSEC={}; Object.entries(SECTORS).forEach(([k,v])=>{Object.assign(SK,v.skills);v.profs.forEach(p=>PROFSEC[p]=k)});
 const CERT={blade:'GWO Blade Repair (BR)',rope:'IRATA Rope Access',elec:'GWO BTT Electrical',mech:'GWO BTT Mechanical',hyd:'GWO BTT Hydraulic',inst:'GWO BTT Installation',insp:'Blade inspection, internal and external',resc:'GWO Advanced Rescue Training (ART)'};
 const LANG={sr:'Serbian',el:'Greek',en:'English',de:'German',tr:'Turkish',bg:'Bulgarian',ru:'Russian',ro:'Romanian',mk:'Macedonian',sq:'Albanian',it:'Italian',da:'Danish',es:'Spanish',pt:'Portuguese',pl:'Polish',sv:'Swedish',fr:'French',hi:'Hindi',ta:'Tamil',vi:'Vietnamese',ja:'Japanese',xh:'Xhosa',ar:'Arabic'};
@@ -848,12 +852,14 @@ const regSkills=new Set(), drawRegSkills=chipRow($('rgSkills'),regSkills,()=>(SE
 $('sectorSel').innerHTML='<option value="all">All trades</option>'+Object.entries(SECTORS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
 function setSector(k){
   F.sector=k;F.prof='all';F.skills.clear();$('sectorSel').value=k;
-  $('profSel').innerHTML='<option value="all">All professions</option>'+(k==='all'?[]:SECTORS[k].profs).map(p=>`<option>${esc(p)}</option>`).join('');
+  const pr=k==='all'?[]:k==='other'?[...new Set(T.filter(t=>t.sector==='other').map(t=>t.prof).filter(Boolean))].sort():SECTORS[k].profs;
+  $('profSel').innerHTML='<option value="all">All professions</option>'+pr.map(p=>`<option>${esc(p)}</option>`).join('');
   $('profSel').disabled=k==='all';$('skillBlock').hidden=k==='all';drawSkillChips();
 }
 setSector('all');
 $('sectorSel').addEventListener('change',e=>{setSector(e.target.value);update()});
 $('profSel').addEventListener('change',e=>{F.prof=e.target.value;update()});
+let qT=null;$('qText').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{F.q=e.target.value.trim().toLowerCase();update()},200)});$('qText').addEventListener('focus',fillQList);
 $('lvlSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F.minLvl=+b.dataset.v;$('lvlSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));update()});
 function setAvail(v){F.avail=v;$('availSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))}
 $('availSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b){setAvail(b.dataset.v);update()}});
@@ -866,7 +872,9 @@ function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map
 
 
 // ---------- results
-function matches(t){return !A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
+const qMatch=t=>!F.q||[t.prof,tradeName(t),...t.skills.map(k=>SK[k]||'')].join(' ').toLowerCase().includes(F.q);
+function fillQList(){const v=new Set();Object.values(SECTORS).forEach(x=>{v.add(x.name);x.profs.forEach(p=>v.add(p))});T.forEach(t=>{if(t.prof)v.add(t.prof);if(t.trade)v.add(t.trade)});v.delete('Other trade');$('qList').innerHTML=[...v].sort().map(n=>`<option value="${esc(n)}">`).join('')}
+function matches(t){return qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
 function update(){
   syncVer(); regBtn();
   list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
@@ -1093,7 +1101,7 @@ function renderSheet(){
     </dl>
     ${contactHTML(t)}
     <dl class="facts">
-      <dt>Trade</dt><dd>${esc(SECTORS[t.sector].name)}</dd>
+      <dt>Trade</dt><dd>${esc(tradeName(t))}</dd>
       <dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd>
       <dt>Top skills</dt><dd><span class="chips">${t.skills.map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${esc(SK[s]||s)}</span>`).join('')}</span></dd>
       <dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd>
@@ -1127,7 +1135,7 @@ const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind'
 const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
 const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
 const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
-const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
 const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
@@ -1159,7 +1167,7 @@ $('rgSkillRows').addEventListener('change',e=>{const d=e.target.dataset;if(d.k&&
 function regSectorChanged(keep){
   const k=$('rgSector').value, s=SECTORS[k];
   $('rgProf').innerHTML=opt([...s.profs,'Other']); if(!keep){regSkills.clear();R.skillInfo={}} drawRegSkills(); renderSkillRows();
-  $('rgOemWrap').hidden=k!=='wind'; $('rgProfOtherWrap').hidden=true;
+  $('rgOemWrap').hidden=k!=='wind'; $('rgTradeOtherWrap').hidden=k!=='other'; $('rgProfOtherWrap').hidden=$('rgProf').value!=='Other';
   $('rcType').innerHTML=`<optgroup label="${esc(s.name)}">${opt(k==='wind'?WINDCERTS:s.certs.filter(c=>!GENCERTS.includes(c)))}</optgroup><optgroup label="General">${opt(GENCERTS)}</optgroup>`;
   $('rcOtherWrap').hidden=true;
 }
@@ -1218,7 +1226,7 @@ $('regForm').addEventListener('click',e=>{if(e.target.closest('.chip'))saveDraft
 function regErr(m){const e=$('rgErr');e.hidden=!m;e.textContent=m;if(m)e.scrollIntoView({block:'nearest'})}
 function validate(n){
   if(n===0)return !fv('rgFirst')||!fv('rgLast')?'Enter your first name and surname.':!/^\S+@\S+\.\S+$/.test(fv('rgEmail'))?'Enter a valid email address, for example name@example.com.':'';
-  if(n===1)return $('rgProf').value==='Other'&&!fv('rgProfOther')?'Enter your profession.':'';
+  if(n===1)return $('rgSector').value==='other'&&!fv('rgTradeOther')?'Enter your trade.':$('rgProf').value==='Other'&&!fv('rgProfOther')?'Enter your profession.':'';
   if(n===2)return !regSkills.size?'Choose at least one skill.':!R.langs.length?'Add at least one language.':'';
   if(n===5)return !findTown(fv('rgCity'))?'Start typing your town and choose it from the list.':!fv('rgCountry')?'Enter your country.':'';
   if(n===6)return !$('rgOk').checked||!$('rgTerms').checked?'Tick both boxes to confirm your profile and accept the terms.':'';
@@ -1239,7 +1247,7 @@ $('regBack').onclick=()=>showStep(Math.max(0,step-1));
 function buildTech(){
   syncSkillInfo(); const c=findTown(fv('rgCity')), from=fv('rgFrom')?new Date(fv('rgFrom')):now, sec=$('rgSector').value;
   return{id:mine?mine.id:Date.now(),uid:ACC.uid,real:true,booked:mine?mine.booked:null,verify:mine?mine.verify:null,mine:true,pending:false,unver:true,name:fv('rgFirst')+' '+fv('rgLast')[0].toUpperCase()+'.',full:fv('rgFirst')+' '+fv('rgLast'),email:fv('rgEmail'),phone:fv('rgPhone'),city:c.name,country:fv('rgCountry'),lat:c.lat+.04,lng:c.lng+.06,
-    sector:sec,prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
+    sector:sec,trade:sec==='other'?fv('rgTradeOther'):'',prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
     free:Math.max(0,Math.ceil((from-now)/6048e5)),years:+fv('rgYears')||0,bio:fv('rgBio'),
@@ -1249,7 +1257,7 @@ function buildTech(){
 function renderReview(){
   const t=buildTech(), row=(a,b)=>`<dt>${a}</dt><dd>${esc(b||'–')}</dd>`;
   $('regReview').innerHTML=`<div class="box"><h3>Approved employers see</h3><dl>
-      ${row('Full name',t.full)}${row('Email',t.email)}${row('Phone',t.phone)}${row('Trade',SECTORS[t.sector].name)}${row('Profession',t.prof)}${row('Level',t.level)}${row('Experience',t.years?t.years+' years':'')}
+      ${row('Full name',t.full)}${row('Email',t.email)}${row('Phone',t.phone)}${row('Trade',tradeName(t))}${row('Profession',t.prof)}${row('Level',t.level)}${row('Experience',t.years?t.years+' years':'')}
       ${row('Skills',t.skills.map(s=>`${SK[s]} (${LV[t.skillInfo[s].lvl]}${t.skillInfo[s].yrs?', '+t.skillInfo[s].yrs+' y':''})`).join('; '))}
       ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
       ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
@@ -1483,7 +1491,7 @@ function lockedSheet(t){
     <div class="row" style="flex-wrap:wrap"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${verTag(t)}</div>
     <dl class="stats"><div><dt>${noSite?'Based in':'To site'}</dt><dd>${noSite?esc(short(t.city)):nf(hav(site,t))+' km'}</dd></div><div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div><div><dt>Certificates</dt><dd>${cs.filter(c=>c.m>=0).length} valid</dd></div></dl>
     <div><h3>Skills</h3><ul class="skl">${t.skills.map(s=>{const i=(t.skillInfo&&t.skillInfo[s])||{lvl:1,yrs:0};return `<li><b>${esc(SK[s]||s)}</b>${lvlHTML(i.lvl)}<span class="yrs">${i.yrs?i.yrs+(i.yrs==1?' year':' years'):''}</span></li>`}).join('')}</ul></div>
-    <dl class="facts"><dt>Trade</dt><dd>${esc(SECTORS[t.sector].name)}</dd><dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd><dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd><dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd></dl>
+    <dl class="facts"><dt>Trade</dt><dd>${esc(tradeName(t))}</dd><dt>Level</dt><dd>${esc(t.level||'Not stated')}</dd><dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd><dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd></dl>
     <div class="box"><h3>Name, contact details and full CV are closed</h3>
       ${n>0?`<p>Opening shows the name, phone, email, work history and every certificate with its number and file.</p><p class="lock">Uses 1 of your ${PLANS.basic.limit} openings this month. You have ${n} left. An opened profile stays open until your month ends.</p>
         <button class="btn primary" type="button" data-act="unlock">Open this profile</button>`
@@ -1569,7 +1577,7 @@ async function run(p){const {data,error}=await p;if(error)throw error;return dat
 async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr(e)}await loadAll();if(good&&ok)toast(ok);return good}
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
-const PUB=['sector','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
+const PUB=['sector','trade','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
 const PRIV=['name','full','email','phone','photo','bio','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
   pub.certList=(t.certList||[]).map(c=>({type:c.type,issuer:c.issuer||'',issued:c.issued||'',exp:c.exp||''}));
