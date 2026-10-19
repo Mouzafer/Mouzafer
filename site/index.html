@@ -238,6 +238,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 .mnav{display:flex;flex-wrap:wrap;gap:2px;flex:1 1 auto;min-width:0}
 .mnav button{border:0;background:transparent;color:var(--mast-muted);font-weight:600;font-size:13.5px;padding:7px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
 .mnav button:hover{color:var(--mast-ink)}
+.nb{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:#DC2626;color:#fff;font-size:11px;line-height:16px;text-align:center;font-weight:700;margin-left:3px}
 .mnav button[aria-current="page"]{color:var(--mast-ink);background:color-mix(in srgb,var(--mast-ink) 12%,transparent)}
 .role{display:flex;align-items:center;gap:0;font-size:12px;color:var(--mast-muted);border:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);border-radius:8px;overflow:hidden}
 .role span{padding:0 9px}
@@ -1399,9 +1400,17 @@ function sendRequest(t){
 }
 // navigation between the map and the pages
 let view='find', pj=null, coEdit=false;
+// red badges: requests waiting for the worker, answers the employer has not looked at yet
+function seenSet(){const v=store.get('hrwww.seen');return new Set(Array.isArray(v)?v:[])}
+function badges(){const wrk=(A.inbox||[]).filter(x=>x.status==='sent'||x.status==='new').length,
+  seen=seenSet(),ans=A.requests.filter(x=>(x.status==='accepted'||x.status==='declined')&&!seen.has(x.id+':'+x.status));
+  if(view==='reqs'&&ans.length){ans.forEach(x=>seen.add(x.id+':'+x.status));store.set('hrwww.seen',[...seen].slice(-500));return{wrk,emp:0}}
+  return{wrk,emp:ans.length}}
+const nb=n=>n?` <span class="nb" aria-label="${n} new">${n}</span>`:'';
 function nav(){
-  const r=A.role, items=r==='guest'?[['find','Home'],['acct','Log in']]:r==='new'?[['join','Create account'],['find','Home']]:r==='emp'?[['find','Find people'],['projects',`Projects (${A.projects.length})`],['short',`Shortlist (${A.shortlist.length})`],['reqs',`Requests (${A.requests.length})`],['sub','Company']]
-    :r==='wrk'?[['me','My area'],['find','Home']]:[['queue',`Verification queue (${pendingList().length})`],['emps',`Employers (${ACC.emps.filter(e=>!e.approved&&e.company&&e.company.name).length})`],['reports',`Reports (${A.reports.length})`],['find','Home']];
+  const bd=badges(); document.title=((A.role==='wrk'&&bd.wrk)||(A.role==='emp'&&bd.emp)?'('+(A.role==='wrk'?bd.wrk:bd.emp)+') ':'')+document.title.replace(/^\(\d+\) /,'');
+  const r=A.role, items=r==='guest'?[['find','Home'],['acct','Log in']]:r==='new'?[['join','Create account'],['find','Home']]:r==='emp'?[['find','Find people'],['projects',`Projects (${A.projects.length})`],['short',`Shortlist (${A.shortlist.length})`],['reqs',`Requests (${A.requests.length})`+nb(bd.emp)],['sub','Company']]
+    :r==='wrk'?[['me','My area'+nb(bd.wrk)],['find','Home']]:[['queue',`Verification queue (${pendingList().length})`],['emps',`Employers (${ACC.emps.filter(e=>!e.approved&&e.company&&e.company.name).length})`],['reports',`Reports (${A.reports.length})`],['find','Home']];
   $('mnav').innerHTML=items.map(x=>`<button type="button" data-v="${x[0]}"${x[0]===view?' aria-current="page"':''}>${x[1]}</button>`).join('');
   $('roleSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===r));
   $('roleSeg').hidden=!ACC.owner; regBtn(); acctChip();
