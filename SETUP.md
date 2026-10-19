@@ -75,4 +75,3 @@ Every change to `site/` is then published automatically. To publish now: **Actio
 - Email notifications (for example when a worker gets a job request). Workers see requests when they log in.
 - Card payments for employers or verification.
 - Certificate file uploads (only the file name is kept).
-- Translations.
