@@ -3,8 +3,8 @@
 Saved on 19 Oct 2026. Ask Claude in this project to continue with any of these.
 
 1. **Google Search Console** – DONE 19 Oct 2026: domain verified, sitemap submitted (works online).
-   Still to do: check the sitemap status says "Erfolgreich" after 1–3 days, request indexing of
-   https://humanresourceswww.com/ (URL check -> "Indexierung beantragen"), then share the link in trade groups.
+   Indexing requested the same day. Still to do: check the sitemap status says "Erfolgreich"
+   after 1–3 days, then share the link in trade groups.
 2. **Brevo domain authentication** – Brevo -> Senders, Domains & Dedicated IPs -> Domains ->
    add `humanresourceswww.eu`, put its DNS records into Namecheap, so emails don't land in spam.
 3. **Job-request email notifications** – workers get an email when an employer sends a request,
