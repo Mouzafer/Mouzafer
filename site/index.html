@@ -31,7 +31,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3,p,dl,dd{margin:0}
 
-.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.sfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;padding:7px 16px;border-top:1px solid var(--line);background:var(--panel);font-size:12.5px;color:var(--muted)}
+.sfoot .linkbtn{font-size:12.5px}
 .mast{border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:10px 18px;background:var(--mast);color:var(--mast-ink)}
 .brand{color:inherit;text-decoration:none;cursor:pointer;border-radius:8px}
 .brand:hover span{text-decoration:underline;text-underline-offset:4px}
@@ -297,7 +299,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 .btn:disabled{opacity:.5;cursor:not-allowed}
 @media (max-width:860px){
   html,body{height:auto}
-  .app{height:auto}
+  .app{height:auto;min-height:100vh;min-height:100dvh}
   .main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"filters" "map" "results"}
   .filters,.results{border-right:0}
   .mapwrap{height:64vh;min-height:360px}
@@ -406,6 +408,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       <aside class="sheet" id="sheet" hidden aria-label="Technician profile"></aside>
     </section>
   </div>
+  <footer class="sfoot" aria-label="About this site"><button type="button" class="linkbtn" data-page="contact">Contact us</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="privacy">Privacy notice</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="terms">Terms</button><span aria-hidden="true">·</span><span>© Human Resources – World Wide Workforce</span></footer>
 </div>
 
 <div class="overlay" id="regOverlay" hidden>
@@ -1474,7 +1477,7 @@ function reportsPage(){
     return pcard(t,`<button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button><button class="btn small" type="button" data-pa="rpDismiss" data-id="${i}">Dismiss report</button><button class="btn small" type="button" data-pa="rpSuspend" data-id="${i}">Suspend profile</button>`,
       `<div class="meta"><b>${esc(r.reason)}</b> · ${esc(r.date)}</div>${r.text?`<p>${esc(r.text)}</p>`:''}`)}).join('')||'<div class="card"><h2>No open reports</h2><p class="meta">Reports from employers appear here.</p></div>'}</div>`;
 }
-function renderPage(){syncVer();$('page').innerHTML=({emps:empsPage,privacy:privacyPage,terms:termsPage,join:joinPage,acct:acctPage,sub:subPage,projects:projectsPage,short:shortPage,reqs:reqsPage,me:mePage,queue:queuePage,reports:reportsPage}[view]||shortPage)()}
+function renderPage(){syncVer();$('page').innerHTML=({emps:empsPage,privacy:privacyPage,contact:contactPage,terms:termsPage,join:joinPage,acct:acctPage,sub:subPage,projects:projectsPage,short:shortPage,reqs:reqsPage,me:mePage,queue:queuePage,reports:reportsPage}[view]||shortPage)()}
 function openOnMap(id,tab){const t=byId(id);if(!t||!canOpen(id))return;show('find');sheetTab=tab||'over';sel=null;if(!matches(t)){setSector(t.sector);setAvail('any')}customSite(t.city+', '+t.country,t.lat,t.lng,t.country);sel=id;renderSheet();update();fly()}
 $('page').addEventListener('change',e=>{
   if(!pj)return;
@@ -1729,7 +1732,7 @@ function joinPage(){
     <div class="joins"><div class="card"><h2>I am looking for work</h2><p class="meta">Free. Create your profile with skills, certificates and availability. Employers find you on the map and send you job requests.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinWrk">I am a worker</button></div></div>
     <div class="card"><h2>I am hiring</h2><p class="meta">Free during launch. Search the map by trade, skill and availability, post projects and send job requests once we have approved your company. For companies that hire others: if you are a freelancer or a one-person company, register as a worker and mark B2B in your profile.</p><div class="rowb"><button class="btn primary" type="button" data-pa="joinEmp">I am an employer</button></div></div></div></div>`;
 }
-const legalLinks='<p class="meta"><button type="button" class="linkbtn" data-welcome="1">Welcome notice</button> · <button type="button" class="linkbtn" data-page="privacy">Privacy notice</button> · <button type="button" class="linkbtn" data-page="terms">Terms</button></p>';
+const legalLinks='<p class="meta"><button type="button" class="linkbtn" data-page="contact">Contact us</button> · <button type="button" class="linkbtn" data-welcome="1">Welcome notice</button> · <button type="button" class="linkbtn" data-page="privacy">Privacy notice</button> · <button type="button" class="linkbtn" data-page="terms">Terms</button></p>';
 function acctPage(){
   if(!LIVE)return `<div class="pwrap"><div class="phead"><h1>Accounts</h1></div><div class="card"><h2>Not connected yet</h2><p class="meta">This copy of the site is not connected to its database, so nobody can register. Add the Supabase details to config.js (see SETUP.md).</p></div>${legalLinks}</div>`;
   if(ACC.state!=='in')return `<div class="pwrap"><div class="phead"><h1>Log in</h1></div><div class="card"><h2>${ACC.state==='loading'?'Loading…':'Log in or create a free account'}</h2>
@@ -1775,6 +1778,12 @@ function privacyPage(){const o=legalOp();
     <h2>Advertising from sponsors</h2><p class="meta">The site can show advertisements from sponsors, for example training centres offering safety and technical courses. Sponsor ads are shown without tracking: we do not share your data with sponsors, and their ads place no cookies. If you click an ad, you go to the sponsor's own website, where its own privacy notice applies.</p>
     <h2>How long</h2><p class="meta">Until you delete your account. Deleting it removes your profile, company details, requests and reviews immediately.</p>
     <h2>Your rights</h2><p class="meta">You can access, correct, export or delete your data, object to its use, and complain to your national data protection authority. Write to ${o.email}.</p></div></div>`}
+function contactPage(){const o=legalOp(),m=o.email;
+  return `<div class="pwrap"><div class="phead"><h1>Contact us</h1></div><div class="card">
+    <p class="meta">Questions, problems with your account, a company waiting for approval, sponsoring or advertising, or a request about your data: write to us.</p>
+    <p style="margin:14px 0"><a class="btn primary" style="text-decoration:none;display:inline-block" href="mailto:${m}">Email ${m}</a></p>
+    <p class="meta">If the button does not open your email app, copy the address above. Please write in English and do not send passwords or copies of ID documents by email.</p>
+    <h2 style="margin-top:16px">Who runs this site</h2><p class="meta">${o.name}, ${o.address}.</p></div></div>`}
 function termsPage(){const o=legalOp();
   return `<div class="pwrap"><div class="phead"><h1>Terms</h1></div><div class="card">
     <h2>The service</h2><p class="meta">Human Resources WWW, run by ${o.name}, helps workers in construction, energy and wind find jobs and helps employers find them. We do not employ workers and are not a party to any job agreed through the site.</p>
