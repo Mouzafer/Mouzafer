@@ -15,4 +15,7 @@ Smaller items:
 - Add the two missing A records (185.199.108.153 and 185.199.110.153) for humanresourceswww.com.
 - Cancel the two unneeded Stellar Web Hosting plans at Namecheap.
 - Namecheap Private Email trial ends 18 Nov 2026, then renews yearly (mailbox for reading mail).
+- Before charging money: move hosting from GitHub Pages to a host that allows commercial use
+  (e.g. Cloudflare Pages). Same files, same address; only the DNS records in Namecheap change.
+- Visitor statistics: Cloudflare Web Analytics (free, no cookies) – send Claude the site token.
 - Have a lawyer/accountant check the privacy notice and whether a licence is needed before charging money.
