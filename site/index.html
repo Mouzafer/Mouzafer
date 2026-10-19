@@ -31,6 +31,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3,p,dl,dd{margin:0}
 
+#radius:disabled{pointer-events:none;opacity:.45}#radWrap{cursor:pointer}
+.flash{outline:3px solid var(--accent);outline-offset:2px}
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
 .sfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;padding:7px 16px;border-top:1px solid var(--line);background:var(--panel);font-size:12.5px;color:var(--muted)}
 .sfoot .linkbtn{font-size:12.5px}
@@ -345,7 +347,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       <p class="lock" id="siteNote"></p>
       <div class="field">
         <label class="flabel" for="radius">Search radius <output id="radiusOut"></output></label>
-        <input type="range" id="radius" min="50" max="3000" step="50" value="300">
+        <div id="radWrap"><input type="range" id="radius" min="50" max="3000" step="50" value="300"></div>
       </div>
       <div class="pair">
         <div class="field"><label class="flabel" for="sectorSel">Trade</label><select id="sectorSel"></select></div>
@@ -902,6 +904,11 @@ $('availSeg').addEventListener('click',e=>{const b=e.target.closest('button');if
 
 $('radius').addEventListener('input',e=>{F.radius=+e.target.value;update()});
 $('radius').addEventListener('change',fly);
+// the slider needs a centre point: say so, and point to the box to fill in
+$('radWrap').addEventListener('click',()=>{if(!$('radius').disabled)return;
+  const box=!$('ctrySel').value?$('ctrySel'):$('regSel').disabled?$('pickBtn'):$('regSel');
+  toast($('ctrySel').value?'Choose a region or town (or tap "Pick on map") to search by distance.':'Choose a country first, then a region or town, to search by distance.');
+  box.focus();box.classList.add('flash');setTimeout(()=>box.classList.remove('flash'),1600)});
 $('sortSel').addEventListener('change',e=>{F.sort=e.target.value;update()});
 $('pickBtn').addEventListener('click',()=>setPick(!picking));
 function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map').classList.toggle('pick',v);if(v)toast('Click the map where your project is.')}
@@ -918,7 +925,7 @@ function update(){
   if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>b.years-a.years||a.dist-b.dist);
   inR.sort((a,b)=>isVer(b)-isVer(a));
   $('mstats').textContent=`${T.length} professionals in ${new Set(T.map(t=>t.country)).size} countries`;
-  $('radiusOut').textContent=noSite?'choose a location first':area?'whole country':nf(F.radius)+' km'; $('radius').disabled=noSite||!!area;
+  $('radiusOut').textContent=noSite?'choose a country first':area?'choose a region or town':nf(F.radius)+' km'; $('radius').disabled=noSite||!!area;
   const sk=[...F.skills].map(k=>SK[k]).join(' + ')||(F.prof!=='all'?F.prof:F.sector==='all'?'All trades':SECTORS[F.sector].name);
   $('rTitle').textContent=`${inR.length} ${inR.length===1?'person':'people'} ${noSite?'registered worldwide':area?'in '+area.name:'within '+nf(F.radius)+' km'}`;
   $('rSub').textContent=`${sk} · ${noSite?'worldwide':area?'whole country':short(site.name)}`;
