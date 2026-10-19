@@ -7,8 +7,8 @@ Saved on 19 Oct 2026. Ask Claude in this project to continue with any of these.
    after 1–3 days, then share the link in trade groups.
 2. **Brevo domain authentication** – DONE: humanresourceswww.eu shows "Authenticated" and "Branded"
    in Brevo (checked 19 Oct 2026).
-3. **Job-request email notifications** – workers get an email when an employer sends a request,
-   employers get one when it is accepted or declined.
+3. **Job-request email notifications** – DONE 19 Oct 2026 (supabase/email-alerts.sql run, Brevo key
+   in Supabase Vault). Still to do: one real test (employer sends a request -> worker gets the email).
 4. **CAPTCHA on sign-up** (Cloudflare Turnstile) against fake accounts.
 5. **Supabase Pro** (about $25/month): daily backups, no pausing. Decided: stay on Free for now.
    Upgrade at about 50–100 real registrations, before advertising the site, or when it earns money.
