@@ -1112,7 +1112,7 @@ function renderSheet(){
       <label class="check"><input type="checkbox" id="rqTrain"> <span>Beginners welcome, training provided</span></label>
       <button class="btn primary" type="submit">Send request</button>
       <p class="lock">${esc(t.name)} gets the request by email and accepts or declines the job.</p></form>`;
-  else if(t.req==='sent') box=`<div class="box"><h3>Request sent</h3><p>Waiting for ${esc(t.name)} to answer. You get a notification when the request is accepted.</p>
+  else if(t.req==='sent') box=`<div class="box"><h3>Request sent</h3><p>Waiting for ${esc(t.name)} to answer. You get an email when the request is accepted or declined.</p>
       ${t.real?'':'<button class="btn small" type="button" data-act="accept">Demo: accept as the technician</button>'}</div>`;
   else box=`<div class="box done"><h3>Job request accepted</h3><p>${esc(t.name)} accepted. When the job is finished you can leave a review under Reviews.</p></div>`;
   let body;
@@ -1381,7 +1381,7 @@ function sendRequest(t){
   if(!ACC.db){toast('Sign in to send job requests.');return}
   const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,mode:$('rqW').value,training:$('rqTrain').checked,msg:$('rqM').value.trim(),status:'sent',date:today()};
   A.requests=A.requests.filter(x=>x.id!==r.id);A.requests.push(r);dbSendRequest(r,t);
-  t.req='sent';renderSheet();nav();toast('Request sent to '+t.name+'. You can follow it under Requests.');
+  t.req='sent';renderSheet();nav();toast('Request sent to '+t.name+'. They get an email; you can follow it under Requests.');
 }
 // navigation between the map and the pages
 let view='find', pj=null, coEdit=false;
@@ -1769,7 +1769,7 @@ function privacyPage(){const o=legalOp();
     <ul class="meta">
       <li><b>Supabase</b>: our database, located in <b>Ireland (EU)</b>. Accounts, worker profiles, company details, job requests, reviews and reports are stored here.</li>
       <li><b>GitHub (GitHub Pages)</b>: delivers the website to your browser. It stores no account or profile data, but like every web server it records your IP address for security.</li>
-      <li><b>Brevo</b> (France): sends our emails, such as account confirmation and password reset, so it receives your email address.</li>
+      <li><b>Brevo</b> (France): sends our emails, such as account confirmation, password reset and job-request alerts, so it receives your email address and the content of those emails.</li>
       <li><b>Namecheap</b>: our domain name and our mailbox ${o.email}. Emails you send us are kept there.</li>
       <li><b>Photon by komoot</b> (Germany): town search. It receives the town you type, nothing else.</li>
       <li><b>jsDelivr, cdnjs (Cloudflare) and Google Fonts</b>: deliver program files, map data and fonts. They see your IP address when your browser loads them.</li>

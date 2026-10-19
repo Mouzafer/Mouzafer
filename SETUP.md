@@ -61,6 +61,21 @@ Every change to `site/` is then published automatically. To publish now: **Actio
    ```
 3. Reload the website. You now see **Verification queue**, **Employers** and **Reports**.
 
+## 6. Job-request email alerts
+
+Workers get an email when an employer sends them a job request; employers get one when it is
+accepted or declined. Sent through the Brevo API.
+
+1. Brevo -> Settings (gear) -> **SMTP & API** -> **API Keys** tab -> **Generate a new API key**,
+   name it `website alerts`, copy the key (it starts with `xkeysib-`; it is shown only once).
+2. Supabase -> **SQL Editor** -> New query, paste and run (with your key between the quotes):
+   `select vault.create_secret('xkeysib-…', 'brevo_api_key');`
+   Never put this key on the website or in GitHub.
+3. New query -> paste all of `supabase/email-alerts.sql` -> **Run**.
+4. If emails do not arrive: Brevo -> Settings -> **Security** -> **Authorized IPs** must allow the
+   request (Brevo emails you about a blocked IP), and in Supabase you can run
+   `select status_code, content from net._http_response order by created desc limit 5;`
+
 ## Day-to-day
 
 - **Employers** register free and appear under **Employers**. Approve real companies only:
@@ -72,6 +87,5 @@ Every change to `site/` is then published automatically. To publish now: **Actio
 
 ## Not built yet
 
-- Email notifications (for example when a worker gets a job request). Workers see requests when they log in.
 - Card payments for employers or verification.
 - Certificate file uploads (only the file name is kept).
