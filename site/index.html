@@ -363,6 +363,15 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
           <button type="button" data-v="4" aria-pressed="false">4 weeks</button>
         </div>
       </div>
+      <div>
+        <span class="flabel">Work mode</span>
+        <div class="seg" id="modeSeg">
+          <button type="button" data-v="any" aria-pressed="true">Any</button>
+          <button type="button" data-v="site" aria-pressed="false">On site</button>
+          <button type="button" data-v="hybrid" aria-pressed="false">Hybrid</button>
+          <button type="button" data-v="remote" aria-pressed="false">Home office</button>
+        </div>
+      </div>
       <label class="check"><input type="checkbox" id="verOnly"> <span>Verified profiles only</span></label>
     </section>
 
@@ -496,6 +505,10 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
           <div class="field"><label class="flabel" for="rgTravel">How far will you travel for work?</label>
             <select id="rgTravel"><option>My country only</option><option selected>Neighbouring countries</option><option>Whole continent</option><option>Worldwide</option></select></div>
         </div>
+        <div><span class="flabel">How can you work? Choose all that fit</span>
+          <label class="check"><input type="checkbox" id="rgModeSite" checked> <span>On site</span></label>
+          <label class="check"><input type="checkbox" id="rgModeHybrid"> <span>Hybrid (partly on site, partly from home)</span></label>
+          <label class="check"><input type="checkbox" id="rgModeRemote"> <span>Home office (fully remote)</span></label></div>
         <label class="check"><input type="checkbox" id="rgOffshore"> <span>I also work offshore</span></label>
         <label class="check"><input type="checkbox" id="rgLicence"> <span>I have a driving licence</span></label>
         <label class="check"><input type="checkbox" id="rgVehicle"> <span>I can bring my own vehicle</span></label>
@@ -583,6 +596,7 @@ const SECTORS={
  mine:{name:'Mining & quarrying',profs:['Miner','Drill & blast operator','Heavy equipment operator','Mining engineer','Underground electrician','Shot firer','Plant operator (crushing)'],skills:{mi_under:'Underground mining',mi_open:'Open-pit / quarry',mi_drill:'Drilling & blasting',mi_equip:'Heavy equipment',mi_proc:'Crushing & processing',mi_vent:'Ventilation & safety'},certs:['Mine safety certificate','Blasting licence','Heavy equipment licence','First aid certificate']},
  other:{name:'Other trade',profs:[],skills:{o_install:'Installation & assembly',o_maint:'Maintenance & repair',o_ops:'Machine & equipment operation',o_lead:'Team leading',o_safety:'Health & safety',o_qa:'Quality control',o_drive:'Driving & logistics'},certs:['Site safety induction card','First aid certificate']}
 };
+const MODES={site:'On site',hybrid:'Hybrid',remote:'Home office'}, modesOf=t=>Array.isArray(t.modes)&&t.modes.length?t.modes:['site'], modeTags=t=>modesOf(t).filter(m=>m!=='site').map(m=>`<span class="tag ok">${MODES[m]}</span>`).join('');
 const tradeName=t=>t.sector==='other'&&t.trade?t.trade:(SECTORS[t.sector]||{name:''}).name;
 const PROFSEC={}; Object.entries(SECTORS).forEach(([k,v])=>{Object.assign(SK,v.skills);v.profs.forEach(p=>{if(!PROFSEC[p])PROFSEC[p]=k})});
 const CERT={blade:'GWO Blade Repair (BR)',rope:'IRATA Rope Access',elec:'GWO BTT Electrical',mech:'GWO BTT Mechanical',hyd:'GWO BTT Hydraulic',inst:'GWO BTT Installation',insp:'Blade inspection, internal and external',resc:'GWO Advanced Rescue Training (ART)'};
@@ -866,6 +880,8 @@ $('sectorSel').addEventListener('change',e=>{setSector(e.target.value);update()}
 $('profSel').addEventListener('change',e=>{F.prof=e.target.value;update()});
 let qT=null;$('qText').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{F.q=e.target.value.trim().toLowerCase();update()},200)});$('qText').addEventListener('focus',fillQList);
 $('lvlSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F.minLvl=+b.dataset.v;$('lvlSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));update()});
+function setMode(v){F.mode=v;$('modeSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))}
+$('modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b){setMode(b.dataset.v);update()}});
 function setAvail(v){F.avail=v;$('availSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v))}
 $('availSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(b){setAvail(b.dataset.v);update()}});
 
@@ -879,10 +895,10 @@ function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map
 // ---------- results
 const qMatch=t=>!F.q||[t.prof,tradeName(t),...t.skills.map(k=>SK[k]||'')].join(' ').toLowerCase().includes(F.q);
 function fillQList(){const v=new Set();Object.values(SECTORS).forEach(x=>{v.add(x.name);x.profs.forEach(p=>v.add(p))});T.forEach(t=>{if(t.prof)v.add(t.prof);if(t.trade)v.add(t.trade)});v.delete('Other trade');$('qList').innerHTML=[...v].sort().map(n=>`<option value="${esc(n)}">`).join('')}
-function matches(t){return qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
+function matches(t){return (!F.mode||F.mode==='any'||modesOf(t).includes(F.mode))&&qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
 function update(){
   syncVer(); regBtn();
-  list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
+  list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(F.mode==='remote'&&modesOf(t).includes('remote'))||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
   inR=list.filter(t=>t.in);
   if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>b.years-a.years||a.dist-b.dist);
   inR.sort((a,b)=>isVer(b)-isVer(a));
@@ -895,7 +911,7 @@ function update(){
     ${av(t)}
     <span class="rname">${esc(dn(t))}</span><span class="rdist">${area||noSite?'':nf(t.dist)+' km'}</span>
     <span class="rsub">${esc(t.prof)} · ${esc(t.city)}, ${esc(t.country)}</span>
-    <span class="rmeta"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${isVer(t)?'<span class="tag ok">Verified</span>':''}${t.skills.slice(0,3).map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${SK[s]}</span>`).join('')}</span></button></li>`).join('');
+    <span class="rmeta"><span class="pill ${aClass(t)}">${aText(t)}</span>${ratingHTML(t)}${isVer(t)?'<span class="tag ok">Verified</span>':''}${modeTags(t)}${t.skills.slice(0,3).map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${SK[s]}</span>`).join('')}</span></button></li>`).join('');
   const em=$('rEmpty'); em.hidden=inR.length>0;
   if(!inR.length){const n=list[0];
     em.innerHTML=area?`<p>Nobody matching is registered in ${esc(area.name)} yet.${n?` The nearest match is ${esc(n.name)} in ${esc(n.city)}, ${esc(n.country)}.`:''} Choose a region to search across borders by distance.</p>`:n?`<p>Nobody matches inside this radius. The nearest match is ${esc(n.name)} in ${esc(n.city)}, ${nf(n.dist)} km away.</p><button type="button" class="btn small" id="widen">Widen radius to ${nf(Math.min(3000,Math.ceil(n.dist/50)*50))} km</button>`
@@ -1075,6 +1091,7 @@ function renderSheet(){
       <div class="grid2">
         <div class="field"><label class="flabel" for="rqS">Start</label><input id="rqS" type="date" value="${addW(mon,Math.max(1,t.free)).toISOString().slice(0,10)}"></div>
         <div class="field"><label class="flabel" for="rqD">Duration</label><select id="rqD"><option>1 week</option><option selected>2 weeks</option><option>1 month</option><option>3 months</option></select></div>
+        <div class="field"><label class="flabel" for="rqW">Work mode</label><select id="rqW"><option value="site">On site</option><option value="hybrid">Hybrid</option><option value="remote">Home office</option></select></div>
       </div>
       <div class="field"><label class="flabel" for="rqM">Message</label><textarea id="rqM" rows="3" placeholder="Scope, rates, accommodation"></textarea></div>
       <button class="btn primary" type="submit">Send request</button>
@@ -1111,6 +1128,7 @@ function renderSheet(){
       <dt>Top skills</dt><dd><span class="chips">${t.skills.map(s=>`<span class="tag${F.skills.has(s)?' hit':''}">${esc(SK[s]||s)}</span>`).join('')}</span></dd>
       <dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd>
       <dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd>
+      <dt>Work mode</dt><dd>${esc(modesOf(t).map(m=>MODES[m]).join(', '))}</dd>
       <dt>Travels</dt><dd>${esc(t.travel||'Not stated')}</dd>
       <dt>Day rate</dt><dd>${esc(t.rate||'On request')}</dd>
     </dl>
@@ -1140,7 +1158,7 @@ const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind'
 const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
 const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
 const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
-const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
 const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
@@ -1233,7 +1251,7 @@ function validate(n){
   if(n===0)return !fv('rgFirst')||!fv('rgLast')?'Enter your first name and surname.':!/^\S+@\S+\.\S+$/.test(fv('rgEmail'))?'Enter a valid email address, for example name@example.com.':'';
   if(n===1)return $('rgSector').value==='other'&&!fv('rgTradeOther')?'Enter your trade.':$('rgProf').value==='Other'&&!fv('rgProfOther')?'Enter your profession.':'';
   if(n===2)return !regSkills.size?'Choose at least one skill.':!R.langs.length?'Add at least one language.':'';
-  if(n===5)return !findTown(fv('rgCity'))?'Start typing your town and choose it from the list.':!fv('rgCountry')?'Enter your country.':'';
+  if(n===5)return !findTown(fv('rgCity'))?'Start typing your town and choose it from the list.':!fv('rgCountry')?'Enter your country.':!['rgModeSite','rgModeHybrid','rgModeRemote'].some(i=>$(i).checked)?'Choose at least one way of working: on site, hybrid or home office.':'';
   if(n===6)return !$('rgOk').checked||!$('rgTerms').checked?'Tick both boxes to confirm your profile and accept the terms.':'';
   return '';
 }
@@ -1256,6 +1274,7 @@ function buildTech(){
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
     free:Math.max(0,Math.ceil((from-now)/6048e5)),years:+fv('rgYears')||0,bio:fv('rgBio'),
+    modes:[['site','rgModeSite'],['hybrid','rgModeHybrid'],['remote','rgModeRemote']].filter(x=>$(x[1]).checked).map(x=>x[0]),
     travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
     work:$('rgWork').value,photo:regPhoto};
 }
@@ -1267,7 +1286,7 @@ function renderReview(){
       ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
       ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
       ${row('Certificates',t.certList.length?t.certList.map(c=>c.type+(c.no?' (No. '+c.no+')':'')).join('; '):'None yet')}${row('WINDA ID',fv('rgWinda'))}
-      ${row('Base',t.city+', '+t.country)}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${row('Day rate',t.rate||'On request')}</dl></div>
+      ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${row('Day rate',t.rate||'On request')}</dl></div>
     <div class="box"><h3>Other workers and visitors see</h3><dl>${row('On the map','A dot near '+t.city)}${row('Name','Not shown')}${row('Contact','Not shown')}${row('Profile','Cannot be opened')}</dl></div>`;
 }
 function openReg(){if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
@@ -1339,7 +1358,7 @@ function sheetAct(act,t){
 function reqTitle(t){const p=A.projects.find(x=>x.id===A.active);return p?p.title:`${[...F.skills].map(k=>SK[k]).join(', ')||t.prof} – ${short(site.name)}`}
 function sendRequest(t){
   if(!ACC.db){toast('Sign in to send job requests.');return}
-  const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,msg:$('rqM').value.trim(),status:'sent',date:today()};
+  const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,mode:$('rqW').value,msg:$('rqM').value.trim(),status:'sent',date:today()};
   A.requests=A.requests.filter(x=>x.id!==r.id);A.requests.push(r);dbSendRequest(r,t);
   t.req='sent';renderSheet();nav();toast('Request sent to '+t.name+'. You can follow it under Requests.');
 }
@@ -1370,13 +1389,14 @@ function projectsPage(){
       <div class="field"><label class="flabel" for="pjRegion">Region</label><select id="pjRegion">${pjRegions()}</select></div>
       <div class="field"><label class="flabel" for="pjStart">Start date</label><input id="pjStart" type="date"></div>
       <div class="field"><label class="flabel" for="pjWeeks">Duration (weeks)</label><input id="pjWeeks" type="number" min="1" value="2"></div>
-      <div class="field"><label class="flabel" for="pjPeople">People needed</label><input id="pjPeople" type="number" min="1" value="2"></div></div>
+      <div class="field"><label class="flabel" for="pjPeople">People needed</label><input id="pjPeople" type="number" min="1" value="2"></div>
+      <div class="field"><label class="flabel" for="pjMode">Work mode</label><select id="pjMode"><option value="site">On site</option><option value="hybrid">Hybrid</option><option value="remote">Home office</option></select></div></div>
       <div class="field"><label class="flabel" for="pjDesc">Description</label><textarea id="pjDesc" rows="3" placeholder="Scope, turbine or machine types, rates, accommodation, travel"></textarea></div>
       <p class="err" id="pjErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="pjSave">Save project</button><button class="btn" type="button" data-pa="pjCancel">Cancel</button></div></div>`:'';
   return `<div class="pwrap"><div class="phead"><h1>Projects</h1>${pj?'':'<button class="btn primary" type="button" data-pa="pjNew">Post a project</button>'}</div>${coBox}${form}
     ${A.projects.map(p=>{const n=matchCount(p);return `<div class="card"><h2>${esc(p.title)}</h2>
       <div class="meta">${esc(SECTORS[p.sector].name)}${p.skills.length?' · '+esc(p.skills.map(s=>SK[s]).join(', ')):''} · ${esc(placeOf(p))}</div>
-      <div class="meta">${p.start?'Starts '+longDate(p.start)+' · ':''}${esc(p.weeks)} weeks · ${esc(p.people)} people needed</div>${p.desc?`<p>${esc(p.desc)}</p>`:''}
+      <div class="meta">${p.start?'Starts '+longDate(p.start)+' · ':''}${esc(p.weeks)} weeks · ${esc(p.people)} people needed${p.mode?' · '+esc(MODES[p.mode]||''):''}</div>${p.desc?`<p>${esc(p.desc)}</p>`:''}
       <div class="rowb"><span class="tag ${n?'ok':'warn'}">${n} matching ${n===1?'person':'people'} ${p.region===''?'in the country':'within 300 km'}</span></div>
       <div class="rowb"><button class="btn primary small" type="button" data-pa="pjFind" data-id="${p.id}">Find people on the map</button><button class="btn small" type="button" data-pa="pjDel" data-id="${p.id}">Delete</button></div></div>`}).join('')
       ||(pj?'':'<div class="card"><h2>No projects yet</h2><p class="meta">Post a project to describe the job once. The search then opens with the right trade, skills and location, and your requests carry the project name.</p></div>')}</div>`;
@@ -1409,7 +1429,7 @@ function mePage(){
     ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button>',`<div class="meta">Your profile is live. Approved employers can find and open it.</div>`)}
     ${verifyCard()}
     <div class="card"><h2>Requests from employers</h2><p class="meta">Approved employers already see your contact details; here you accept or decline the job.</p>
-      ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}</div><p>${esc(r.msg)}</p>
+      ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}${r.mode?' · '+esc(MODES[r.mode]||''):''}</div><p>${esc(r.msg)}</p>
         <div class="rowb">${r.status==='sent'?`<button class="btn primary small" type="button" data-pa="inAcc" data-id="${r.id}">Accept the job</button><button class="btn small" type="button" data-pa="inDec" data-id="${r.id}">Decline</button>`
           :`<span class="tag ${r.status==='accepted'?'ok':''}">${r.status==='accepted'?'Accepted':'Declined'}</span>`}</div></div>`).join('')}</div>
     <div class="card"><h2>Availability</h2><p class="meta">Click a week to mark it booked or free. Employers see this calendar on your profile.</p>
@@ -1452,9 +1472,9 @@ $('page').addEventListener('click',e=>{
   else if(a==='pjNew'){pj={sector:F.sector==='all'?'wind':F.sector,skills:new Set(F.skills),country:$('ctrySel').value||'Greece'}}
   else if(a==='pjCancel'){pj=null}
   else if(a==='pjSave'){if(!v('pjTitle'))return err('pjErr','Enter a project title.');
-    A.projects.unshift({id:Date.now(),title:v('pjTitle'),sector:pj.sector,skills:[...pj.skills],country:$('pjCountry').value,region:$('pjRegion').value,start:$('pjStart').value,weeks:v('pjWeeks')||'1',people:v('pjPeople')||'1',desc:v('pjDesc')});pj=null;toast('Project saved.')}
+    A.projects.unshift({id:Date.now(),title:v('pjTitle'),sector:pj.sector,skills:[...pj.skills],country:$('pjCountry').value,region:$('pjRegion').value,start:$('pjStart').value,weeks:v('pjWeeks')||'1',people:v('pjPeople')||'1',mode:$('pjMode').value,desc:v('pjDesc')});pj=null;toast('Project saved.')}
   else if(a==='pjDel'){A.projects=A.projects.filter(p=>String(p.id)!==id);if(String(A.active)===id)A.active=null}
-  else if(a==='pjFind'){const p=A.projects.find(x=>String(x.id)===id);if(!p)return;A.active=p.id;saveA();show('find');setSector(p.sector);p.skills.forEach(s=>F.skills.add(s));drawSkillChips();setAvail('any');selectCountry(p.country);if(p.region!==''){$('regSel').value=p.region;selectRegion(+p.region)}return}
+  else if(a==='pjFind'){const p=A.projects.find(x=>String(x.id)===id);if(!p)return;A.active=p.id;saveA();show('find');setSector(p.sector);p.skills.forEach(s=>F.skills.add(s));drawSkillChips();setAvail('any');setMode(p.mode&&p.mode!=='site'?p.mode:'any');selectCountry(p.country);if(p.region!==''){$('regSel').value=p.region;selectRegion(+p.region)}return}
   else if(a==='open'){return openOnMap(+id)}
   else if(a==='review'){return openOnMap(+id,'rev')}
   else if(a==='unshort'){A.shortlist=A.shortlist.filter(x=>x!==+id)}
@@ -1582,7 +1602,7 @@ async function run(p){const {data,error}=await p;if(error)throw error;return dat
 async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr(e)}await loadAll();if(good&&ok)toast(ok);return good}
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
-const PUB=['sector','trade','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
+const PUB=['sector','trade','modes','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
 const PRIV=['name','full','email','phone','photo','bio','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
   pub.certList=(t.certList||[]).map(c=>({type:c.type,issuer:c.issuer||'',issued:c.issued||'',exp:c.exp||''}));
@@ -1647,7 +1667,7 @@ function setType(type){if(!LIVE||!ACC.uid)return;ACC.type=type;applyRole(true);
   act(async()=>{await run(sb.from('accounts').upsert({id:ACC.uid,role:type==='wrk'?'worker':'employer'}));if(type==='emp')await run(sb.from('employers').upsert({id:ACC.uid}))})}
 function setReq(r,status){r.status=status;act(()=>run(sb.from('requests').update({status}).eq('id',r.id)))}
 function dbSendRequest(r,t){if(!t.uid)return;
-  act(()=>run(sb.from('requests').upsert({employer_id:ACC.uid,worker_id:t.uid,status:'sent',data:{company:r.company,where:r.where,project:r.project,start:r.start,duration:r.duration,msg:r.msg}},{onConflict:'employer_id,worker_id'})))}
+  act(()=>run(sb.from('requests').upsert({employer_id:ACC.uid,worker_id:t.uid,status:'sent',data:{company:r.company,where:r.where,mode:r.mode,project:r.project,start:r.start,duration:r.duration,msg:r.msg}},{onConflict:'employer_id,worker_id'})))}
 function dbAddReview(rv,t){if(t.uid)act(()=>run(sb.from('reviews').insert({employer_id:ACC.uid,worker_id:t.uid,stars:rv.stars,text:rv.text,company:rv.company})))}
 function sendReport(r){const t=byId(r.techId);if(t&&t.uid)act(()=>run(sb.from('reports').insert({reporter:ACC.uid,worker_id:t.uid,reason:r.reason,text:r.text})))}
 function dropReport(key){act(()=>run(sb.from('reports').delete().eq('id',key)))}
