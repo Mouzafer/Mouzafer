@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<title>Human Resources WWW – find technicians on the map</title>
+<title>Human Resources – World Wide Workforce</title>
 <meta name="description" content="Free profiles for construction, energy and wind technicians worldwide. Employers find skilled workers by trade, skill, distance and availability.">
 </head><body>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -41,6 +41,8 @@ h1,h2,h3,p,dl,dd{margin:0}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em}
 .brand svg{flex:none}
 .brand b{color:var(--accent);font-weight:800}
+.btag{font-weight:600;color:var(--mast-ink)}
+@media (max-width:620px){.bname{display:grid;line-height:1.15}.bsep{display:none}.btag{font-size:12.5px;color:var(--mast-muted)}}
 .mstats{color:var(--mast-muted);font-size:13px;flex:1 1 200px;min-width:0}
 .mnote{font-size:12px;color:var(--mast-muted);border:1px solid color-mix(in srgb,var(--mast-muted) 45%,transparent);padding:3px 9px;border-radius:999px}
 
@@ -316,9 +318,9 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 
 <div class="app">
   <header class="mast">
-    <a class="brand" id="homeBtn" href="./" title="Home" aria-label="Human Resources WWW, home">
+    <a class="brand" id="homeBtn" href="./" title="Home" aria-label="Human Resources – World Wide Workforce, home">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="var(--accent)"/><path d="M15 6.5c-3.6 0-6.5 2.8-6.5 6.3 0 4.6 6.5 10.7 6.5 10.7s6.5-6.1 6.5-10.7c0-3.5-2.9-6.3-6.5-6.3z" fill="#fff"/><circle cx="15" cy="12.8" r="2.6" fill="var(--accent)"/></svg>
-      <span>Human Resources <b>WWW</b></span>
+      <span class="bname">Human Resources<span class="bsep"> – </span><span class="btag"><b>W</b>orld <b>W</b>ide <b>W</b>orkforce</span></span>
     </a>
     <nav class="mnav" id="mnav" aria-label="Sections"></nav>
     <p class="mstats" id="mstats"></p>
@@ -546,7 +548,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
 </div>
 <div class="overlay" id="welcomeOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" style="width:min(560px,100%)">
-    <h2 id="welcomeTitle">Welcome to Human Resources WWW</h2>
+    <h2 id="welcomeTitle">Welcome to Human Resources – World Wide Workforce</h2>
     <div class="welcome">
       <p><b>Free to use.</b> Using this website is completely free at the moment. We will never ask you for payment or credit card details. If this ever changes, we will announce it clearly in advance.</p>
       <p><b>Your data, your choice.</b> You decide what personal information you share. When you create a profile, approved employers can see your full profile, including your name and contact details, so they can offer you work. Other visitors only see your profession and town, never your name.</p>
