@@ -471,8 +471,8 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
             <div class="field"><label class="flabel" for="rjOrg">Employer or project</label><input id="rjOrg" placeholder="Company, wind farm or site"></div>
             <div class="field"><label class="flabel" for="rjPlace">Country or region</label><input id="rjPlace"></div>
             <div class="pair">
-              <div class="field"><label class="flabel" for="rjFrom">From (year)</label><input id="rjFrom" type="number" inputmode="numeric" placeholder="2021"></div>
-              <div class="field"><label class="flabel" for="rjTo">To (year)</label><input id="rjTo" type="number" inputmode="numeric" placeholder="Empty = today"></div>
+              <div class="field"><label class="flabel" for="rjFrom">From (year)</label><input id="rjFrom" type="number" inputmode="numeric" placeholder="e.g. 2021"></div>
+              <div class="field"><label class="flabel" for="rjTo">To (year)</label><input id="rjTo" type="number" inputmode="numeric" placeholder="empty = still there"></div>
             </div>
           </div>
           <div class="field"><label class="flabel" for="rjText">What you did</label><textarea id="rjText" rows="2" placeholder="Tasks, turbine or machine types, size of the project, your responsibility"></textarea></div>
@@ -492,7 +492,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       </section>
       <section class="rstep" data-step="4" hidden>
         <h3>Certificates and licences</h3>
-        <div class="field"><label class="flabel" for="rgWinda">WINDA ID (wind only, optional)</label><input id="rgWinda" placeholder="Lets us verify GWO certificates automatically"></div>
+        <div class="field"><label class="flabel" for="rgWinda">WINDA ID (wind only, optional)</label><input id="rgWinda" placeholder="Helps us check your GWO certificates"></div>
         <div class="box">
           <div class="grid2">
             <div class="field"><label class="flabel" for="rcType">Certificate</label><select id="rcType"></select></div>
@@ -501,13 +501,13 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
             <div class="field"><label class="flabel" for="rcNo">Certificate number</label><input id="rcNo"></div>
             <div class="field"><label class="flabel" for="rcIssued">Date issued</label><input id="rcIssued" type="date"></div>
             <div class="field"><label class="flabel" for="rcExp">Valid until</label><input id="rcExp" type="date"></div>
-            <div class="field"><label class="flabel" for="rcFile">File (PDF or photo)</label><input id="rcFile" type="file" accept="application/pdf,image/png,image/jpeg"></div>
+            <div class="field"><label class="flabel" for="rcFile">File name (optional, not uploaded)</label><input id="rcFile" type="file" accept="application/pdf,image/png,image/jpeg"></div>
           </div>
           <label class="check"><input type="checkbox" id="rcNoExp"> <span>This certificate does not expire</span></label>
           <div class="row"><button class="btn small" type="button" id="rcAdd">Add certificate</button></div>
         </div>
         <ul class="clist" id="rcList"></ul>
-        <p class="lock">Approved employers see every certificate with its number, dates and file.</p>
+        <p class="lock">Approved employers see every certificate with its number and dates. Files are not uploaded yet: keep them ready to send when an employer asks.</p>
       </section>
       <section class="rstep" data-step="5" hidden>
         <h3>Where you are based</h3>
@@ -751,6 +751,7 @@ Australia:Brisbane|-27.47|153.03,Adelaide|-34.93|138.60,Perth|-31.95|115.86,Hoba
 // dates
 const now=new Date(), mon=new Date(now); mon.setDate(now.getDate()+((8-now.getDay())%7||7));
 const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const p2=n=>String(n).padStart(2,'0'), monISO=`${mon.getFullYear()}-${p2(mon.getMonth()+1)}-${p2(mon.getDate())}`; // week 0 of the availability calendar
 const addW=(d,w)=>{const x=new Date(d);x.setDate(x.getDate()+7*w);return x};
 const addM=m=>{const x=new Date(now);x.setMonth(x.getMonth()+m);return x};
 const aClass=t=>t.free===0?'now':t.free<=4?'soon':'later';
@@ -1271,6 +1272,13 @@ $('rgCity').addEventListener('change',()=>{const c=findTown(fv('rgCity'));if(c&&
 $('regForm').addEventListener('input',()=>{$('rgBioN').textContent=$('rgBio').value.length+' / 400';if(step===0)photoPrev();saveDraft()});
 $('regForm').addEventListener('click',e=>{if(e.target.closest('.chip'))saveDraft()});
 function regErr(m){const e=$('rgErr');e.hidden=!m;e.textContent=m;if(m)e.scrollIntoView({block:'nearest'})}
+// typed into an "Add …" box but pressed Continue: add it instead of losing it
+function addPending(n){const typed=ids=>ids.some(i=>fv(i)),tryAdd=b=>{$(b).click();return $('rgErr').hidden};
+  if(n===2){if(fv('rlOther')&&!tryAdd('rlAdd'))return false;if(!R.langs.length&&$('rlName').value&&$('rlName').value!=='Other')$('rlAdd').click()}
+  if(n===3){if(typed(['rjRole','rjOrg','rjPlace','rjFrom','rjTo','rjText'])&&!tryAdd('rjAdd'))return false;
+    if(typed(['reTitle','reSchool','reYear'])&&!tryAdd('reAdd'))return false}
+  if(n===4&&(typed(['rcOther','rcIssuer','rcNo','rcIssued','rcExp'])||$('rcFile').files.length)&&!tryAdd('rcAdd'))return false;
+  return true}
 function validate(n){
   if(n===0)return !fv('rgFirst')||!fv('rgLast')?'Enter your first name and surname.':!/^\S+@\S+\.\S+$/.test(fv('rgEmail'))?'Enter a valid email address, for example name@example.com.':'';
   if(n===1)return $('rgSector').value==='other'&&!fv('rgTradeOther')?'Enter your trade.':$('rgProf').value==='Other'&&!fv('rgProfOther')?'Enter your profession.':'';
@@ -1292,15 +1300,15 @@ function showStep(n){
   $('regBody').scrollTop=0;
 }
 function goTo(n){for(const i of flow()){if(i>=n)break;const m=validate(i);if(m){showStep(i);return regErr(m)}}showStep(n)}
-$('regSteps').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)goTo(+b.dataset.s)});
-$('regBack').onclick=()=>showStep(prevOf(step));
+$('regSteps').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled&&addPending(step))goTo(+b.dataset.s)});
+$('regBack').onclick=()=>{if(addPending(step))showStep(prevOf(step))};
 function buildTech(){
   syncSkillInfo(); const c=findTown(fv('rgCity')), from=fv('rgFrom')?new Date(fv('rgFrom')):now, sec=$('rgSector').value;
   return{id:mine?mine.id:Date.now(),uid:ACC.uid,real:true,booked:mine?mine.booked:null,verify:mine?mine.verify:null,mine:true,pending:false,unver:true,name:fv('rgFirst')+' '+fv('rgLast')[0].toUpperCase()+'.',full:fv('rgFirst')+' '+fv('rgLast'),email:fv('rgEmail'),phone:fv('rgPhone'),city:c.name,country:fv('rgCountry'),lat:c.lat+.04,lng:c.lng+.06,
     sector:sec,trade:sec==='other'?fv('rgTradeOther'):'',prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
-    free:Math.max(0,Math.ceil((from-now)/6048e5)),years:+fv('rgYears')||0,bio:fv('rgBio'),
+    free:(d=>d<=0?0:Math.ceil(d/7))(fv('rgFrom')?Math.round((Date.parse(fv('rgFrom'))-Date.parse(monISO))/864e5):0),years:+fv('rgYears')||0,bio:fv('rgBio'),
     beginner:$('rgBeginner').checked,training:$('rgTraining').checked,
     modes:[['site','rgModeSite'],['hybrid','rgModeHybrid'],['remote','rgModeRemote']].filter(x=>$(x[1]).checked).map(x=>x[0]),
     travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
@@ -1329,7 +1337,7 @@ $('closeReg').onclick=closeReg;
 $('regOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeReg()});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('regOverlay').hidden)closeReg();else if(picking)setPick(false);else if(sel)closeProfile()});
 $('regForm').addEventListener('submit',e=>{
-  e.preventDefault(); const msg=validate(step); if(msg)return regErr(msg);
+  e.preventDefault(); if(!addPending(step))return; const msg=validate(step); if(msg)return regErr(msg);
   if(step<LAST)return goTo(nextOf(step));
   for(const i of flow()){if(i===LAST)break;const m=validate(i);if(m){showStep(i);return regErr(m)}}
   if(!ACC.db||ACC.state!=='in')return regErr('Log in to save your profile.');
@@ -1637,11 +1645,16 @@ async function run(p){const {data,error}=await p;if(error)throw error;return dat
 async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr(e)}await loadAll();if(good&&ok)toast(ok);return good}
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
-const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work','b2b'];
+const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work','b2b','wk0'];
 const PRIV=['name','full','email','phone','photo','bio','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
+  pub.wk0=monISO; // free and booked count weeks from this Monday
   pub.certList=(t.certList||[]).map(c=>({type:c.type,issuer:c.issuer||'',issued:c.issued||'',exp:c.exp||''}));
   return{pub:clone(pub),priv:clone(priv)}}
+// weeks have passed since the profile was saved: move availability forward
+function shiftWeeks(t){const d=t.wk0?Math.round((Date.parse(monISO)-Date.parse(t.wk0))/6048e5):0;if(!(d>0))return;
+  if(Array.isArray(t.booked)&&t.booked.length===12){t.booked=t.booked.slice(d).concat(Array(12).fill(false)).slice(0,12);const f=t.booked.indexOf(false);t.free=f<0?12:f}
+  else t.free=Math.max(0,t.free-d);t.wk0=monISO}
 function okTech(o){return o&&SECTORS[o.sector]&&typeof o.prof==='string'&&Array.isArray(o.skills)&&o.skillInfo&&typeof o.skillInfo==='object'&&Array.isArray(o.certList)&&isFinite(o.lat)&&isFinite(o.lng)&&typeof o.city==='string'}
 function markReqs(){T.forEach(t=>{const r=A.requests.find(x=>x.techId===t.id);t.req=r?(r.status==='accepted'?'ok':r.status==='sent'?'sent':undefined):undefined})}
 
@@ -1669,7 +1682,7 @@ function loadAll(){if(!LIVE)return Promise.resolve();if(loading)return loading;
     const real=pubs.map(w=>{const o={...(w.data||{}),...(pm[w.id]||{})};if(!okTech(o))return null;const t=clone(o);
       Object.assign(t,{id:+w.num,uid:w.id,real:true,mine:w.id===ACC.uid,vs:w.verify_status,suspended:w.suspended,verify:w.verify_status==='none'?null:{from:w.verify_from,until:w.verify_until}});
       t.photo=okPhoto(t.photo);t.name=t.name||('Worker no. '+String(w.num).slice(-5));if(!pm[w.id])t.full='';if(!Array.isArray(t.booked))t.booked=null;
-      if(!isFinite(t.free))t.free=0;if(!isFinite(t.years))t.years=0;return t}).filter(t=>t&&(!t.suspended||t.mine||ACC.owner));
+      if(!isFinite(t.free))t.free=0;if(!isFinite(t.years))t.years=0;shiftWeeks(t);return t}).filter(t=>t&&(!t.suspended||t.mine||ACC.owner));
     const byUid={};real.forEach(t=>byUid[t.uid]=t);
     T.splice(0,T.length,...real);mine=T.find(t=>t.mine)||null;if(mine&&!regPhoto)regPhoto=mine.photo;
     const rq=u?await run(sb.from('requests').select('*')):[];
