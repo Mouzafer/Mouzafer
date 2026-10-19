@@ -17,5 +17,7 @@ Smaller items:
 - Namecheap Private Email trial ends 18 Nov 2026, then renews yearly (mailbox for reading mail).
 - Before charging money: move hosting from GitHub Pages to a host that allows commercial use
   (e.g. Cloudflare Pages). Same files, same address; only the DNS records in Namecheap change.
+- Around 1,000–2,000 workers: change the map to load only the people in the visible area / search
+  from the database (today every visitor downloads all public profiles). Ask Claude to do this.
 - Visitor statistics: Cloudflare Web Analytics (free, no cookies) – send Claude the site token.
 - Have a lawyer/accountant check the privacy notice and whether a licence is needed before charging money.
