@@ -11,6 +11,9 @@ Updated on 19 Oct 2026. Ask Claude in this project to continue with any of these
    `select status_code, content from net._http_response order by created desc limit 5;`
 2. **Google Search Console** – check that Sitemaps shows "Erfolgreich" (1–3 days after 19 Oct),
    then share the link in trade groups (Facebook, LinkedIn, WhatsApp).
+   Also add the site to **Bing Webmaster Tools** (bing.com/webmasters -> sign in with Google ->
+   "Import from Google Search Console"); Bing also feeds DuckDuckGo, Yahoo and Ecosia.
+   Check indexing with the search `site:humanresourceswww.com`.
 3. **CAPTCHA on sign-up** (Cloudflare Turnstile) against fake accounts.
 4. **Supabase Pro** (about $25/month): daily backups, no pausing. Decided: stay on Free for now.
    Upgrade at about 50–100 real registrations, before advertising the site, or when it earns money.
