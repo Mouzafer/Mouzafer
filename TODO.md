@@ -9,7 +9,9 @@ Saved on 19 Oct 2026. Ask Claude in this project to continue with any of these.
 3. **Job-request email notifications** – workers get an email when an employer sends a request,
    employers get one when it is accepted or declined.
 4. **CAPTCHA on sign-up** (Cloudflare Turnstile) against fake accounts.
-5. **Supabase Pro** (about $25/month) once real users register: no pausing after 7 days, daily backups.
+5. **Supabase Pro** (about $25/month): daily backups, no pausing. Decided: stay on Free for now.
+   Upgrade at about 50–100 real registrations, before advertising the site, or when it earns money.
+   Until then: open the site at least once a week so the free project is not paused.
 
 Smaller items:
 - Add the two missing A records (185.199.108.153 and 185.199.110.153) for humanresourceswww.com.
