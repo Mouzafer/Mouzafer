@@ -26,5 +26,8 @@ Smaller items:
   sold directly to industry companies (first: about two training centres; later workwear/safety shops,
   agencies, crew travel). No Google ads, no tracking, so no cookie banner needed. Privacy notice and
   terms already mention sponsor ads. Later options: paid employer plans, featured job posts, paid verification.
+- Brevo API key "website alerts" (job-request emails) expires after its set date or after 90 days
+  without use. If alerts stop: make a new key (Transactional email = All) and store it again in Supabase:
+  `select vault.update_secret((select id from vault.secrets where name='brevo_api_key'), 'NEW-KEY');`
 - Visitor statistics: Cloudflare Web Analytics (free, no cookies) – send Claude the site token.
 - Have a lawyer/accountant check the privacy notice and whether a licence is needed before charging money.
