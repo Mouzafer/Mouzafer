@@ -19,5 +19,9 @@ Smaller items:
   (e.g. Cloudflare Pages). Same files, same address; only the DNS records in Namecheap change.
 - Around 1,000–2,000 workers: change the map to load only the people in the visible area / search
   from the database (today every visitor downloads all public profiles). Ask Claude to do this.
+- Advertising and income (plan together with the hosting move): sponsor banners or "featured" spots
+  sold directly to industry companies (first: about two training centres; later workwear/safety shops,
+  agencies, crew travel). No Google ads, no tracking, so no cookie banner needed. Privacy notice and
+  terms already mention sponsor ads. Later options: paid employer plans, featured job posts, paid verification.
 - Visitor statistics: Cloudflare Web Analytics (free, no cookies) – send Claude the site token.
 - Have a lawyer/accountant check the privacy notice and whether a licence is needed before charging money.
