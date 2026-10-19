@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}ul.meta{padding-left:20px;margin:6px 0}ul.meta li{margin:4px 0}
+</style>
 <title>Human Resources – World Wide Workforce</title>
 <meta name="description" content="Human Resources – World Wide Workforce: free profiles for construction, energy and wind technicians worldwide. Employers find skilled workers by trade, skill, distance and availability on a map.">
 <link rel="canonical" href="https://humanresourceswww.com/">
@@ -439,7 +440,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
           <label class="check"><input type="checkbox" id="rgBeginner"> <span>I have little or no experience yet and I am ready to learn</span></label>
           <label class="check"><input type="checkbox" id="rgTraining"> <span>I am open to training on the job</span></label>
           <p class="lock">Many employers look for motivated beginners. No diploma or certificate is required to register.</p></div>
-        <div class="field"><label class="flabel" for="rgBio">Professional summary <output id="rgBioN">0 / 400</output></label><textarea id="rgBio" rows="4" maxlength="400" placeholder="Two or three sentences: what you do best, typical projects, machines or materials you know"></textarea></div>
+        <div class="field"><label class="flabel" for="rgBio">Professional summary <output id="rgBioN">0 / 400</output></label><textarea id="rgBio" rows="4" maxlength="400" placeholder="Two or three sentences: what you do best, typical projects, machines or materials you know. No home address."></textarea></div>
       </section>
       <section class="rstep" data-step="2" hidden>
         <h3>Skills</h3>
@@ -1567,12 +1568,12 @@ function contactHTML(t){
 }
 function companyBox(){
   const co=A.company;
-  return !co||coEdit?`<div class="card"><h2>Your company</h2><p class="meta">Used for your invoice and shown to workers when you send a job request.</p>
+  return !co||coEdit?`<div class="card"><h2>Your company</h2><p class="meta">Enter only your registered business details, never a home address. Your company name is shown to workers when you send a job request and on reviews you write. The other details are seen only by you and our admins, to approve your company. They are stored with the service providers listed in our <button type="button" class="linkbtn" data-page="privacy">privacy notice</button>.</p>
       <div class="grid2"><div class="field"><label class="flabel" for="coName">Company name</label><input id="coName" value="${esc(co?co.name:'')}"></div>
       <div class="field"><label class="flabel" for="coVat">VAT number</label><input id="coVat" value="${esc(co?co.vat||'':'')}"></div>
       <div class="field"><label class="flabel" for="coPerson">Contact person</label><input id="coPerson" value="${esc(co?co.person:'')}"></div>
       <div class="field"><label class="flabel" for="coEmail">Email</label><input id="coEmail" type="email" value="${esc(co?co.email:'')}"></div>
-      <div class="field"><label class="flabel" for="coAddr">Invoice address</label><input id="coAddr" value="${esc(co?co.addr||'':'')}"></div>
+      <div class="field"><label class="flabel" for="coAddr">Registered business address</label><input id="coAddr" placeholder="Company address, not a home address" value="${esc(co?co.addr||'':'')}"></div>
       <div class="field"><label class="flabel" for="coCountry">Country</label><input id="coCountry" value="${esc(co?co.country:'')}"></div></div>
       <p class="err" id="coErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="coSave">Save company</button></div></div>`
     :`<div class="card slim"><div><b>${esc(co.name)}</b><div class="meta">${esc([co.vat&&'VAT '+co.vat,co.person,co.email,co.country].filter(Boolean).join(' · '))}</div></div><button class="btn small" type="button" data-pa="coEdit">Edit</button></div>`;
@@ -1758,9 +1759,19 @@ function privacyPage(){const o=legalOp();
   return `<div class="pwrap"><div class="phead"><h1>Privacy notice</h1></div><div class="card">
     <h2>Who is responsible</h2><p class="meta">${o.name}, ${o.address}. Contact: ${o.email}.</p>
     <h2>What we collect</h2><p class="meta">Your email address and password (stored encrypted) to run your account. Workers add their name, contact details, profession, skills, languages, work history, education, certificates, town, availability and, if they want, a photo and day rate. Employers add their company details, projects and shortlist. We also store job requests, reviews and reports.</p>
+    <p class="meta"><b>We ask only for what is needed, and never for a home address.</b> Workers give their town only; the map shows the town, not where you live. Employers give their registered business details (company name, VAT number, business address, contact person and email).</p>
     <h2>Why</h2><p class="meta">To connect workers with employers, which is the service you sign up for (contract), and with your consent for the profile details you choose to publish. You can withdraw consent by deleting your profile.</p>
     <h2>Who sees what</h2><p class="meta">Everyone, also without an account, sees the public part of a worker profile: profession, skills, level, languages, town, availability, work preferences (such as on site, home office or B2B) and certificate types. No name, photo or contact details. Employers whose company we have approved, and our admins, also see name, contact details, photo, work history, education and certificate numbers. Job requests are visible only to the employer and worker involved. Reports are visible only to admins.</p>
-    <h2>Where your data is stored</h2><p class="meta">With our hosting provider Supabase, in the region chosen for this project. The website is served by GitHub Pages. Town search sends what you type to the OpenStreetMap search service Photon (komoot). We do not sell data and do not use advertising or tracking cookies. Your browser keeps your login session and an unsent registration draft in local storage.</p>
+    <h2>Where your data is stored and who helps us</h2><p class="meta">We use these service providers. Each one keeps or handles the data only to provide its service to us:</p>
+    <ul class="meta">
+      <li><b>Supabase</b>: our database. Accounts, worker profiles, company details, job requests, reviews and reports are stored here.</li>
+      <li><b>GitHub (GitHub Pages)</b>: delivers the website to your browser. It stores no account or profile data, but like every web server it records your IP address for security.</li>
+      <li><b>Brevo</b> (France): sends our emails, such as account confirmation and password reset, so it receives your email address.</li>
+      <li><b>Namecheap</b>: our domain name and our mailbox ${o.email}. Emails you send us are kept there.</li>
+      <li><b>Photon by komoot</b> (Germany): town search. It receives the town you type, nothing else.</li>
+      <li><b>jsDelivr, cdnjs (Cloudflare) and Google Fonts</b>: deliver program files, map data and fonts. They see your IP address when your browser loads them.</li>
+    </ul>
+    <p class="meta">Some of these companies are based in the USA. Data sent there is protected by EU safeguards such as the EU standard contractual clauses. We do not sell data and do not use advertising or tracking cookies. Your browser keeps your login session and an unsent registration draft in local storage.</p>
     <h2>How long</h2><p class="meta">Until you delete your account. Deleting it removes your profile, company details, requests and reviews immediately.</p>
     <h2>Your rights</h2><p class="meta">You can access, correct, export or delete your data, object to its use, and complain to your national data protection authority. Write to ${o.email}.</p></div></div>`}
 function termsPage(){const o=legalOp();
