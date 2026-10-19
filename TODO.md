@@ -15,7 +15,7 @@ Saved on 19 Oct 2026. Ask Claude in this project to continue with any of these.
    Until then: open the site at least once a week so the free project is not paused.
 
 Smaller items:
-- Add the two missing A records (185.199.108.153 and 185.199.110.153) for humanresourceswww.com.
+- DONE 19 Oct 2026: all four GitHub A records (185.199.108–111.153) are set for humanresourceswww.com.
 - Cancel the two unneeded Stellar Web Hosting plans at Namecheap.
 - Namecheap Private Email trial ends 18 Nov 2026, then renews yearly (mailbox for reading mail).
 - Before charging money: move hosting from GitHub Pages to a host that allows commercial use
