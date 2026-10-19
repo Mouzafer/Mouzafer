@@ -373,6 +373,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
         </div>
       </div>
       <label class="check"><input type="checkbox" id="verOnly"> <span>Verified profiles only</span></label>
+      <label class="check"><input type="checkbox" id="beginOnly"> <span>Beginners and people open to training</span></label>
     </section>
 
     <section class="results" aria-label="Matching technicians">
@@ -433,6 +434,10 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
             <select id="rgLevel"><option>Helper / trainee</option><option selected>Skilled worker</option><option>Senior / lead hand</option><option>Foreman / supervisor</option><option>Engineer / specialist</option></select></div>
           <div class="field"><label class="flabel" for="rgYears">Total years in this trade</label><input id="rgYears" type="number" min="0" max="50" inputmode="numeric"></div>
         </div>
+        <div class="box"><b>New to this work?</b>
+          <label class="check"><input type="checkbox" id="rgBeginner"> <span>I have little or no experience yet and I am ready to learn</span></label>
+          <label class="check"><input type="checkbox" id="rgTraining"> <span>I am open to training on the job</span></label>
+          <p class="lock">Many employers look for motivated beginners. No diploma or certificate is required to register.</p></div>
         <div class="field"><label class="flabel" for="rgBio">Professional summary <output id="rgBioN">0 / 400</output></label><textarea id="rgBio" rows="4" maxlength="400" placeholder="Two or three sentences: what you do best, typical projects, machines or materials you know"></textarea></div>
       </section>
       <section class="rstep" data-step="2" hidden>
@@ -594,9 +599,10 @@ const SECTORS={
  fact:{name:'Factory & manufacturing',profs:['Machine operator','CNC operator / programmer','Production line worker','Assembly technician','Maintenance technician','Quality inspector','Forklift driver','Industrial electrician','Production supervisor'],skills:{fa_cnc:'CNC machining',fa_ops:'Machine operation',fa_asm:'Assembly',fa_maint:'Industrial maintenance',fa_plc:'PLC & automation',fa_qc:'Quality control',fa_weld:'Production welding',fa_lean:'Lean & 5S'},certs:['Forklift licence','Site safety induction card','First aid certificate','Trade qualification / diploma']},
  logi:{name:'Logistics & warehouse',profs:['Truck driver','Heavy goods driver (C/CE)','Warehouse worker','Forklift / reach truck driver','Logistics coordinator','Dispatcher','Courier / delivery driver'],skills:{l_drive:'Driving',l_hgv:'Heavy goods vehicles',l_fork:'Forklift / reach truck',l_pick:'Picking & packing',l_stock:'Stock control',l_plan:'Route & transport planning',l_adr:'Dangerous goods (ADR)'},certs:['Driving licence C / CE','Driver CPC','ADR certificate','Forklift licence','Tachograph card']},
  mine:{name:'Mining & quarrying',profs:['Miner','Drill & blast operator','Heavy equipment operator','Mining engineer','Underground electrician','Shot firer','Plant operator (crushing)'],skills:{mi_under:'Underground mining',mi_open:'Open-pit / quarry',mi_drill:'Drilling & blasting',mi_equip:'Heavy equipment',mi_proc:'Crushing & processing',mi_vent:'Ventilation & safety'},certs:['Mine safety certificate','Blasting licence','Heavy equipment licence','First aid certificate']},
+ gen:{name:'General work & helpers',profs:['Construction helper / labourer','General worker','Cleaner','Warehouse helper','Kitchen helper','Seasonal farm worker','Mover / loader','Gardening & landscaping helper','Painter helper','Factory helper','Hotel & housekeeping staff'],skills:{h_phys:'Physical & manual work',h_rel:'Reliable & punctual',h_team:'Teamwork',h_clean:'Cleaning',h_load:'Loading & carrying',h_tools:'Basic hand tools',h_farm:'Farm & harvest work',h_food:'Kitchen & food preparation',h_car:'Driving (car licence)'},certs:['Driving licence B','First aid certificate','Site safety induction card','Food hygiene certificate']},
  other:{name:'Other trade',profs:[],skills:{o_install:'Installation & assembly',o_maint:'Maintenance & repair',o_ops:'Machine & equipment operation',o_lead:'Team leading',o_safety:'Health & safety',o_qa:'Quality control',o_drive:'Driving & logistics'},certs:['Site safety induction card','First aid certificate']}
 };
-const MODES={site:'On site',hybrid:'Hybrid',remote:'Home office'}, modesOf=t=>Array.isArray(t.modes)&&t.modes.length?t.modes:['site'], modeTags=t=>modesOf(t).filter(m=>m!=='site').map(m=>`<span class="tag ok">${MODES[m]}</span>`).join('');
+const MODES={site:'On site',hybrid:'Hybrid',remote:'Home office'}, modesOf=t=>Array.isArray(t.modes)&&t.modes.length?t.modes:['site'], modeTags=t=>modesOf(t).filter(m=>m!=='site').map(m=>`<span class="tag ok">${MODES[m]}</span>`).join('')+(t.beginner?'<span class="tag warn">New to the trade</span>':'')+(t.training?'<span class="tag ok">Open to training</span>':'');
 const tradeName=t=>t.sector==='other'&&t.trade?t.trade:(SECTORS[t.sector]||{name:''}).name;
 const PROFSEC={}; Object.entries(SECTORS).forEach(([k,v])=>{Object.assign(SK,v.skills);v.profs.forEach(p=>{if(!PROFSEC[p])PROFSEC[p]=k})});
 const CERT={blade:'GWO Blade Repair (BR)',rope:'IRATA Rope Access',elec:'GWO BTT Electrical',mech:'GWO BTT Mechanical',hyd:'GWO BTT Hydraulic',inst:'GWO BTT Installation',insp:'Blade inspection, internal and external',resc:'GWO Advanced Rescue Training (ART)'};
@@ -895,7 +901,7 @@ function setPick(v){picking=v;$('pickBtn').setAttribute('aria-pressed',v);$('map
 // ---------- results
 const qMatch=t=>!F.q||[t.prof,tradeName(t),...t.skills.map(k=>SK[k]||'')].join(' ').toLowerCase().includes(F.q);
 function fillQList(){const v=new Set();Object.values(SECTORS).forEach(x=>{v.add(x.name);x.profs.forEach(p=>v.add(p))});T.forEach(t=>{if(t.prof)v.add(t.prof);if(t.trade)v.add(t.trade)});v.delete('Other trade');$('qList').innerHTML=[...v].sort().map(n=>`<option value="${esc(n)}">`).join('')}
-function matches(t){return (!F.mode||F.mode==='any'||modesOf(t).includes(F.mode))&&qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
+function matches(t){return (!F.begin||t.beginner||t.training)&&(!F.mode||F.mode==='any'||modesOf(t).includes(F.mode))&&qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
 function update(){
   syncVer(); regBtn();
   list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(F.mode==='remote'&&modesOf(t).includes('remote'))||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
@@ -1094,6 +1100,7 @@ function renderSheet(){
         <div class="field"><label class="flabel" for="rqW">Work mode</label><select id="rqW"><option value="site">On site</option><option value="hybrid">Hybrid</option><option value="remote">Home office</option></select></div>
       </div>
       <div class="field"><label class="flabel" for="rqM">Message</label><textarea id="rqM" rows="3" placeholder="Scope, rates, accommodation"></textarea></div>
+      <label class="check"><input type="checkbox" id="rqTrain"> <span>Beginners welcome, training provided</span></label>
       <button class="btn primary" type="submit">Send request</button>
       <p class="lock">${esc(t.name)} gets the request by email and accepts or declines the job.</p></form>`;
   else if(t.req==='sent') box=`<div class="box"><h3>Request sent</h3><p>Waiting for ${esc(t.name)} to answer. You get a notification when the request is accepted.</p>
@@ -1129,6 +1136,7 @@ function renderSheet(){
       <dt>Base</dt><dd>${esc(t.city)}, ${esc(t.country)}</dd>
       <dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd>
       <dt>Work mode</dt><dd>${esc(modesOf(t).map(m=>MODES[m]).join(', '))}</dd>
+      ${t.beginner||t.training?`<dt>Experience</dt><dd>${[t.beginner&&'New to the trade, ready to learn',t.training&&'Open to training'].filter(Boolean).join(' · ')}</dd>`:''}
       <dt>Travels</dt><dd>${esc(t.travel||'Not stated')}</dd>
       <dt>Day rate</dt><dd>${esc(t.rate||'On request')}</dd>
     </dl>
@@ -1158,7 +1166,7 @@ const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind'
 const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
 const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
 const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
-const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgRate','rgCur'], CHECKS=['rgBeginner','rgTraining','rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
 const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
@@ -1255,18 +1263,21 @@ function validate(n){
   if(n===6)return !$('rgOk').checked||!$('rgTerms').checked?'Tick both boxes to confirm your profile and accept the terms.':'';
   return '';
 }
+const QUICK=[0,1,5,6,7]; let quick=false;
+const flow=()=>quick?QUICK:STEPS.map((_,i)=>i), nextOf=n=>{const f=flow();return f[f.indexOf(n)+1]??LAST}, prevOf=n=>{const f=flow();return f[Math.max(0,f.indexOf(n)-1)]};
 function showStep(n){
   step=n; maxStep=Math.max(maxStep,n); regErr('');
   document.querySelectorAll('.rstep').forEach(s=>s.hidden=+s.dataset.step!==n);
-  $('regSteps').innerHTML=STEPS.map((s,i)=>`<li class="${i<n?'done':i===n?'cur':''}"><button type="button" data-s="${i}"${i>maxStep?' disabled':''}${i===n?' aria-current="step"':''}><span>${i+1}. ${s}</span></button></li>`).join('');
-  $('regBack').hidden=n===0; $('regPos').textContent=`Step ${n+1} of ${STEPS.length}`;
+  const f=flow(), pos=f.indexOf(n);
+  $('regSteps').innerHTML=f.map((i,k)=>`<li class="${k<pos?'done':k===pos?'cur':''}"><button type="button" data-s="${i}"${i>maxStep?' disabled':''}${i===n?' aria-current="step"':''}><span>${k+1}. ${STEPS[i]}</span></button></li>`).join('');
+  $('regBack').hidden=n===0; $('regPos').textContent=`Step ${pos+1} of ${f.length}${quick?' · quick profile':''}`;
   $('regNext').textContent=n<LAST?'Continue':mine?'Save changes':'Create profile';
   renderLists(); if(n===2)renderSkillRows(); if(n===LAST)renderReview(); if(n===0)photoPrev();
   $('regBody').scrollTop=0;
 }
-function goTo(n){for(let i=0;i<n;i++){const m=validate(i);if(m){showStep(i);return regErr(m)}}showStep(n)}
+function goTo(n){for(const i of flow()){if(i>=n)break;const m=validate(i);if(m){showStep(i);return regErr(m)}}showStep(n)}
 $('regSteps').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)goTo(+b.dataset.s)});
-$('regBack').onclick=()=>showStep(Math.max(0,step-1));
+$('regBack').onclick=()=>showStep(prevOf(step));
 function buildTech(){
   syncSkillInfo(); const c=findTown(fv('rgCity')), from=fv('rgFrom')?new Date(fv('rgFrom')):now, sec=$('rgSector').value;
   return{id:mine?mine.id:Date.now(),uid:ACC.uid,real:true,booked:mine?mine.booked:null,verify:mine?mine.verify:null,mine:true,pending:false,unver:true,name:fv('rgFirst')+' '+fv('rgLast')[0].toUpperCase()+'.',full:fv('rgFirst')+' '+fv('rgLast'),email:fv('rgEmail'),phone:fv('rgPhone'),city:c.name,country:fv('rgCountry'),lat:c.lat+.04,lng:c.lng+.06,
@@ -1274,6 +1285,7 @@ function buildTech(){
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
     free:Math.max(0,Math.ceil((from-now)/6048e5)),years:+fv('rgYears')||0,bio:fv('rgBio'),
+    beginner:$('rgBeginner').checked,training:$('rgTraining').checked,
     modes:[['site','rgModeSite'],['hybrid','rgModeHybrid'],['remote','rgModeRemote']].filter(x=>$(x[1]).checked).map(x=>x[0]),
     travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
     work:$('rgWork').value,photo:regPhoto};
@@ -1286,14 +1298,14 @@ function renderReview(){
       ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
       ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
       ${row('Certificates',t.certList.length?t.certList.map(c=>c.type+(c.no?' (No. '+c.no+')':'')).join('; '):'None yet')}${row('WINDA ID',fv('rgWinda'))}
-      ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${row('Day rate',t.rate||'On request')}</dl></div>
+      ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${t.beginner||t.training?row('Beginner',[t.beginner&&'New to the trade',t.training&&'Open to training'].filter(Boolean).join(', ')):''}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${row('Day rate',t.rate||'On request')}</dl></div>
     <div class="box"><h3>Other workers and visitors see</h3><dl>${row('On the map','A dot near '+t.city)}${row('Name','Not shown')}${row('Contact','Not shown')}${row('Profile','Cannot be opened')}</dl></div>`;
 }
-function openReg(){if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
+function openReg(q){quick=!!q&&!mine;$('rgBeginner').closest('.box').hidden=false;if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':quick?'Quick profile (2 minutes)':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
 function placeMine(t){ T.splice(0,T.length,...T.filter(x=>!x.mine)); T.push(t); mine=t; }
 function removeMine(){ T.splice(0,T.length,...T.filter(x=>!x.mine)); mine=null; dbDeleteWorker(); store.set('hrwww.reg2',null); $('regForm').reset(); R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}; regOem.clear(); syncChips('rgOem',regOem); regPhoto=null; regSectorChanged(false); renderLists(); closeProfile(); toast('Your profile was removed.'); }
 loadDraft();
-$('openReg').onclick=()=>A.role==='guest'?openAuth('signup'):A.role==='new'?show('join'):openReg();
+$('openReg').onclick=()=>A.role==='guest'?openAuth('signup'):A.role==='new'?show('join'):mine?openReg():show('me');
 $('homeBtn').onclick=e=>{e.preventDefault();$('regOverlay').hidden=true;$('authOverlay').hidden=true;if(sel)closeProfile();show('find');$('mainWrap').scrollIntoView?window.scrollTo(0,0):0};
 $('acctBtn').onclick=()=>ACC.state==='out'&&LIVE?openAuth('login'):show('acct');
 function closeReg(){$('regOverlay').hidden=true;$('openReg').focus()}
@@ -1302,8 +1314,8 @@ $('regOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)close
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('regOverlay').hidden)closeReg();else if(picking)setPick(false);else if(sel)closeProfile()});
 $('regForm').addEventListener('submit',e=>{
   e.preventDefault(); const msg=validate(step); if(msg)return regErr(msg);
-  if(step<LAST)return goTo(step+1);
-  for(let i=0;i<LAST;i++){const m=validate(i);if(m){showStep(i);return regErr(m)}}
+  if(step<LAST)return goTo(nextOf(step));
+  for(const i of flow()){if(i===LAST)break;const m=validate(i);if(m){showStep(i);return regErr(m)}}
   if(!ACC.db||ACC.state!=='in')return regErr('Log in to save your profile.');
   const wasMine=!!mine, t=buildTech(); placeMine(t); saveMine(t); if(!ACC.owner&&ACC.type!=='wrk')setType('wrk'); saveDraft();
   $('regOverlay').hidden=true;
@@ -1358,7 +1370,7 @@ function sheetAct(act,t){
 function reqTitle(t){const p=A.projects.find(x=>x.id===A.active);return p?p.title:`${[...F.skills].map(k=>SK[k]).join(', ')||t.prof} – ${short(site.name)}`}
 function sendRequest(t){
   if(!ACC.db){toast('Sign in to send job requests.');return}
-  const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,mode:$('rqW').value,msg:$('rqM').value.trim(),status:'sent',date:today()};
+  const r={id:ACC.uid+'-'+t.id,from:ACC.uid,to:t.uid||null,techId:t.id,company:(A.company&&A.company.name)||'An employer',where:short(site.name),project:$('rqP').value.trim()||'Project',start:$('rqS').value,duration:$('rqD').value,mode:$('rqW').value,training:$('rqTrain').checked,msg:$('rqM').value.trim(),status:'sent',date:today()};
   A.requests=A.requests.filter(x=>x.id!==r.id);A.requests.push(r);dbSendRequest(r,t);
   t.req='sent';renderSheet();nav();toast('Request sent to '+t.name+'. You can follow it under Requests.');
 }
@@ -1392,11 +1404,12 @@ function projectsPage(){
       <div class="field"><label class="flabel" for="pjPeople">People needed</label><input id="pjPeople" type="number" min="1" value="2"></div>
       <div class="field"><label class="flabel" for="pjMode">Work mode</label><select id="pjMode"><option value="site">On site</option><option value="hybrid">Hybrid</option><option value="remote">Home office</option></select></div></div>
       <div class="field"><label class="flabel" for="pjDesc">Description</label><textarea id="pjDesc" rows="3" placeholder="Scope, turbine or machine types, rates, accommodation, travel"></textarea></div>
+      <label class="check"><input type="checkbox" id="pjTrain"> <span>Beginners welcome, training provided</span></label>
       <p class="err" id="pjErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="pjSave">Save project</button><button class="btn" type="button" data-pa="pjCancel">Cancel</button></div></div>`:'';
   return `<div class="pwrap"><div class="phead"><h1>Projects</h1>${pj?'':'<button class="btn primary" type="button" data-pa="pjNew">Post a project</button>'}</div>${coBox}${form}
     ${A.projects.map(p=>{const n=matchCount(p);return `<div class="card"><h2>${esc(p.title)}</h2>
       <div class="meta">${esc(SECTORS[p.sector].name)}${p.skills.length?' · '+esc(p.skills.map(s=>SK[s]).join(', ')):''} · ${esc(placeOf(p))}</div>
-      <div class="meta">${p.start?'Starts '+longDate(p.start)+' · ':''}${esc(p.weeks)} weeks · ${esc(p.people)} people needed${p.mode?' · '+esc(MODES[p.mode]||''):''}</div>${p.desc?`<p>${esc(p.desc)}</p>`:''}
+      <div class="meta">${p.start?'Starts '+longDate(p.start)+' · ':''}${esc(p.weeks)} weeks · ${esc(p.people)} people needed${p.mode?' · '+esc(MODES[p.mode]||''):''}${p.training?' · beginners welcome':''}</div>${p.desc?`<p>${esc(p.desc)}</p>`:''}
       <div class="rowb"><span class="tag ${n?'ok':'warn'}">${n} matching ${n===1?'person':'people'} ${p.region===''?'in the country':'within 300 km'}</span></div>
       <div class="rowb"><button class="btn primary small" type="button" data-pa="pjFind" data-id="${p.id}">Find people on the map</button><button class="btn small" type="button" data-pa="pjDel" data-id="${p.id}">Delete</button></div></div>`}).join('')
       ||(pj?'':'<div class="card"><h2>No projects yet</h2><p class="meta">Post a project to describe the job once. The search then opens with the right trade, skills and location, and your requests carry the project name.</p></div>')}</div>`;
@@ -1423,13 +1436,16 @@ function oldInbox(){
   saveA();
 }
 function mePage(){
-  if(!mine)return `<div class="pwrap"><div class="phead"><h1>My area</h1></div><div class="card"><h2>You have no profile yet</h2><p class="meta">Register once. Afterwards this page shows requests from employers, your availability calendar and reminders before a certificate expires.</p><div class="rowb"><button class="btn primary" type="button" data-pa="reg">Register your profile</button></div></div></div>`;
+  if(!mine)return `<div class="pwrap"><div class="phead"><h1>My area</h1></div><div class="card"><h2>You have no profile yet</h2><p class="meta">Choose how you want to start. Afterwards this page shows requests from employers, your availability calendar and reminders before a certificate expires.</p>
+      <div class="joins"><div class="card"><h2>Quick profile</h2><p class="meta">About 2 minutes: your name, the work you do or want to do, your town and when you can start. No CV, diploma or certificates needed. You can add more later.</p><div class="rowb"><button class="btn primary" type="button" data-pa="regQuick">Start quick profile</button></div></div>
+      <div class="card"><h2>Full profile</h2><p class="meta">For experienced workers: skills with levels, languages, work history, education and certificates. Employers trust complete profiles more.</p><div class="rowb"><button class="btn" type="button" data-pa="reg">Start full profile</button></div></div></div></div></div>`;
   ensureInbox(); const cs=certs(mine).slice().sort((a,b)=>a.m-b.m), bk=weeksOf(mine), rv=reviewsOf(mine), soon=cs.filter(c=>c.exp&&c.m<3).length;
   return `<div class="pwrap"><div class="phead"><h1>My area</h1></div>
     ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button>',`<div class="meta">Your profile is live. Approved employers can find and open it.</div>`)}
+    ${!mine.skills.length||!(mine.langList||[]).length?'<div class="card"><h2>Complete your profile</h2><p class="meta">Add your skills and languages so employers find you more easily. It only takes a few minutes.</p><div class="rowb"><button class="btn primary small" type="button" data-pa="reg">Add skills and languages</button></div></div>':''}
     ${verifyCard()}
     <div class="card"><h2>Requests from employers</h2><p class="meta">Approved employers already see your contact details; here you accept or decline the job.</p>
-      ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}${r.mode?' · '+esc(MODES[r.mode]||''):''}</div><p>${esc(r.msg)}</p>
+      ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}${r.mode?' · '+esc(MODES[r.mode]||''):''}${r.training?' · training provided':''}</div><p>${esc(r.msg)}</p>
         <div class="rowb">${r.status==='sent'?`<button class="btn primary small" type="button" data-pa="inAcc" data-id="${r.id}">Accept the job</button><button class="btn small" type="button" data-pa="inDec" data-id="${r.id}">Decline</button>`
           :`<span class="tag ${r.status==='accepted'?'ok':''}">${r.status==='accepted'?'Accepted':'Declined'}</span>`}</div></div>`).join('')}</div>
     <div class="card"><h2>Availability</h2><p class="meta">Click a week to mark it booked or free. Employers see this calendar on your profile.</p>
@@ -1472,7 +1488,7 @@ $('page').addEventListener('click',e=>{
   else if(a==='pjNew'){pj={sector:F.sector==='all'?'wind':F.sector,skills:new Set(F.skills),country:$('ctrySel').value||'Greece'}}
   else if(a==='pjCancel'){pj=null}
   else if(a==='pjSave'){if(!v('pjTitle'))return err('pjErr','Enter a project title.');
-    A.projects.unshift({id:Date.now(),title:v('pjTitle'),sector:pj.sector,skills:[...pj.skills],country:$('pjCountry').value,region:$('pjRegion').value,start:$('pjStart').value,weeks:v('pjWeeks')||'1',people:v('pjPeople')||'1',mode:$('pjMode').value,desc:v('pjDesc')});pj=null;toast('Project saved.')}
+    A.projects.unshift({id:Date.now(),title:v('pjTitle'),sector:pj.sector,skills:[...pj.skills],country:$('pjCountry').value,region:$('pjRegion').value,start:$('pjStart').value,weeks:v('pjWeeks')||'1',people:v('pjPeople')||'1',mode:$('pjMode').value,training:$('pjTrain').checked,desc:v('pjDesc')});pj=null;toast('Project saved.')}
   else if(a==='pjDel'){A.projects=A.projects.filter(p=>String(p.id)!==id);if(String(A.active)===id)A.active=null}
   else if(a==='pjFind'){const p=A.projects.find(x=>String(x.id)===id);if(!p)return;A.active=p.id;saveA();show('find');setSector(p.sector);p.skills.forEach(s=>F.skills.add(s));drawSkillChips();setAvail('any');setMode(p.mode&&p.mode!=='site'?p.mode:'any');selectCountry(p.country);if(p.region!==''){$('regSel').value=p.region;selectRegion(+p.region)}return}
   else if(a==='open'){return openOnMap(+id)}
@@ -1480,11 +1496,12 @@ $('page').addEventListener('click',e=>{
   else if(a==='unshort'){A.shortlist=A.shortlist.filter(x=>x!==+id)}
   else if(a==='demoAccept'){const r=A.requests.find(x=>x.techId===+id),t=byId(+id);if(r&&t){setReq(r,'accepted');t.req='ok';toast(t.name+' accepted your request.')}}
   else if(a==='reg'){return openReg()}
+  else if(a==='regQuick'){return openReg(true)}
   else if(a==='inAcc'||a==='inDec'){const r=A.inbox.find(x=>String(x.id)===id);if(r){setReq(r,a==='inAcc'?'accepted':'declined');toast(a==='inAcc'?'Accepted. '+r.company+' is informed.':'Request declined.')}}
   else if(a==='wk'){mine.booked=weeksOf(mine).slice();mine.booked[+id]=!mine.booked[+id];const f=mine.booked.indexOf(false);mine.free=f<0?12:f;saveMine(mine)}
   else if(a==='approve'){const t=byId(+id);if(t){t.real?adminVerify(t,'ok'):A.approved.push(t.id);toast(t.name+' is now verified.')}}
   else if(a==='reject'){const t=byId(+id);if(t){t.real?adminVerify(t,'declined'):A.verNo.push(t.id);toast('Verification declined. The profile stays visible as not verified.')}}
-  else if(a==='joinWrk'){setType('wrk');show('me');return openReg()}
+  else if(a==='joinWrk'){setType('wrk');return show('me')}
   else if(a==='joinEmp'){setType('emp');return show('sub')}
   else if(a==='switchType'){const n=ACC.type==='wrk'?'emp':'wrk';setType(n);return show(n==='wrk'?'me':'sub')}
   else if(a==='delAcct'){return deleteAccount()}
@@ -1536,7 +1553,7 @@ function lockedList(){
      :`<p class="meta">${A.role==='guest'?'You see where registered workers are, but not who they are. Workers register free. Employers open full profiles once we have approved their company.':'As a worker you see where registered workers are, but not who they are. Only approved employers can open profiles.'}</p>
       <button class="btn small" type="button" data-go="${A.role==='guest'?'signup':A.role==='new'?'join':mine?'me':'reg'}">${A.role==='guest'?'Create a free account':mine?'Open my area':'Create my profile'}</button>`}</div></li>`;
 }
-$('rList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;b.dataset.go==='reg'?openReg():b.dataset.go==='signup'?openAuth('signup'):show(b.dataset.go)});
+$('rList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;b.dataset.go==='reg'?(mine?openReg():show('me')):b.dataset.go==='signup'?openAuth('signup'):show(b.dataset.go)});
 function contactHTML(t){
   const first=t.name.split(' ')[0].toLowerCase().normalize('NFD').replace(/[^a-z]/g,'')||'worker';
   const em=t.real?(t.email||''):`${first}.${t.id}@example.com`, ph=t.real?(t.phone||''):`+00 555 01${String(t.id).padStart(2,'0')}`;
@@ -1584,6 +1601,7 @@ function verifyCard(){
     ${has?'':'<p class="lock">Add at least one certificate to your profile first.</p>'}</div></div>`;
 }
 $('verOnly').addEventListener('change',e=>{F.verOnly=e.target.checked;update()});
+$('beginOnly').addEventListener('change',e=>{F.begin=e.target.checked;update()});
 syncVer();
 // ---------- accounts and data: Supabase (email + password sign-in, Postgres with row level security)
 // Tables and access rules: supabase/schema.sql. The public sees only the public part of each
@@ -1602,7 +1620,7 @@ async function run(p){const {data,error}=await p;if(error)throw error;return dat
 async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr(e)}await loadAll();if(good&&ok)toast(ok);return good}
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
-const PUB=['sector','trade','modes','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
+const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work'];
 const PRIV=['name','full','email','phone','photo','bio','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
   pub.certList=(t.certList||[]).map(c=>({type:c.type,issuer:c.issuer||'',issued:c.issued||'',exp:c.exp||''}));
@@ -1667,7 +1685,7 @@ function setType(type){if(!LIVE||!ACC.uid)return;ACC.type=type;applyRole(true);
   act(async()=>{await run(sb.from('accounts').upsert({id:ACC.uid,role:type==='wrk'?'worker':'employer'}));if(type==='emp')await run(sb.from('employers').upsert({id:ACC.uid}))})}
 function setReq(r,status){r.status=status;act(()=>run(sb.from('requests').update({status}).eq('id',r.id)))}
 function dbSendRequest(r,t){if(!t.uid)return;
-  act(()=>run(sb.from('requests').upsert({employer_id:ACC.uid,worker_id:t.uid,status:'sent',data:{company:r.company,where:r.where,mode:r.mode,project:r.project,start:r.start,duration:r.duration,msg:r.msg}},{onConflict:'employer_id,worker_id'})))}
+  act(()=>run(sb.from('requests').upsert({employer_id:ACC.uid,worker_id:t.uid,status:'sent',data:{company:r.company,where:r.where,mode:r.mode,training:!!r.training,project:r.project,start:r.start,duration:r.duration,msg:r.msg}},{onConflict:'employer_id,worker_id'})))}
 function dbAddReview(rv,t){if(t.uid)act(()=>run(sb.from('reviews').insert({employer_id:ACC.uid,worker_id:t.uid,stars:rv.stars,text:rv.text,company:rv.company})))}
 function sendReport(r){const t=byId(r.techId);if(t&&t.uid)act(()=>run(sb.from('reports').insert({reporter:ACC.uid,worker_id:t.uid,reason:r.reason,text:r.text})))}
 function dropReport(key){act(()=>run(sb.from('reports').delete().eq('id',key)))}
