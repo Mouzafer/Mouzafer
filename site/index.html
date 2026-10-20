@@ -41,6 +41,8 @@ h1,h2,h3,p,dl,dd{margin:0}
 #cvPrint ul{margin:0;padding-left:16px}#cvPrint li{margin:3px 0;break-inside:avoid}#cvPrint .cvd{float:right;color:#555;font-size:10pt}
 #cvPrint footer{margin-top:16px;padding-top:6px;border-top:1px solid #ccd;font-size:9pt;color:#555;text-align:center}
 @media print{@page{size:A4;margin:14mm}body>*:not(#cvPrint){display:none!important}#cvPrint{display:block!important}html,body{height:auto!important;background:#fff!important}}
+.pbar{margin:0;padding:8px 18px;font-size:13px;background:color-mix(in srgb,var(--brand-green) 9%,transparent);border-bottom:1px solid var(--line)}.pbar a{color:inherit}
+.plist{margin:10px 0 0;padding-left:18px;display:grid;gap:6px}
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
 .sfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;padding:7px 16px;border-top:1px solid var(--line);background:var(--panel);font-size:12.5px;color:var(--muted)}
 .sfoot .linkbtn{font-size:12.5px}
@@ -397,6 +399,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
         <select id="sortSel" aria-label="Sort results"><option value="dist">Nearest first</option><option value="free">Soonest free</option><option value="years">Most experience</option></select>
         <p id="rSub"></p>
       </div>
+      <p class="pbar" id="partnerBar" hidden></p>
       <ul class="rlist" id="rList"></ul>
       <div class="empty" id="rEmpty" hidden></div>
     </section>
@@ -419,7 +422,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       <aside class="sheet" id="sheet" hidden aria-label="Technician profile"></aside>
     </section>
   </div>
-  <footer class="sfoot" aria-label="About this site"><button type="button" class="linkbtn" data-page="contact">Contact us</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="privacy">Privacy notice</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="terms">Terms</button><span aria-hidden="true">·</span><span>© Human Resources – World Wide Workforce</span></footer>
+  <footer class="sfoot" aria-label="About this site"><button type="button" class="linkbtn" data-page="partners">Partners</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="contact">Contact us</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="privacy">Privacy notice</button><span aria-hidden="true">·</span><button type="button" class="linkbtn" data-page="terms">Terms</button><span aria-hidden="true">·</span><span>© Human Resources – World Wide Workforce</span></footer>
 </div>
 
 <div class="overlay" id="regOverlay" hidden>
@@ -935,6 +938,7 @@ function update(){
   if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>b.years-a.years||a.dist-b.dist);
   inR.sort((a,b)=>isVer(b)-isVer(a));
   $('mstats').textContent=`${T.length} professionals in ${new Set(T.map(t=>t.country)).size} countries`;
+  {const pb=$('partnerBar');pb.hidden=!PARTNERS.length;if(PARTNERS.length)pb.innerHTML='<b>Partners hiring here:</b> '+PARTNERS.slice(0,6).map(partnerLink).join(' · ')+(PARTNERS.length>6?` · <button type="button" class="linkbtn" data-page="partners">all ${PARTNERS.length}</button>`:'')}
   $('radiusOut').textContent=noSite?'choose a country first':area?'choose a region or town':nf(F.radius)+' km'; $('radius').disabled=noSite||!!area;
   const sk=[...F.skills].map(k=>SK[k]).join(' + ')||(F.prof!=='all'?F.prof:F.sector==='all'?'All trades':SECTORS[F.sector].name);
   $('rTitle').textContent=`${inR.length} ${inR.length===1?'person':'people'} ${noSite?'registered worldwide':area?'in '+area.name:'within '+nf(F.radius)+' km'}`;
@@ -1526,7 +1530,7 @@ function reportsPage(){
     return pcard(t,`<button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button><button class="btn small" type="button" data-pa="rpDismiss" data-id="${i}">Dismiss report</button><button class="btn small" type="button" data-pa="rpSuspend" data-id="${i}">Suspend profile</button>`,
       `<div class="meta"><b>${esc(r.reason)}</b> · ${esc(r.date)}</div>${r.text?`<p>${esc(r.text)}</p>`:''}`)}).join('')||'<div class="card"><h2>No open reports</h2><p class="meta">Reports from employers appear here.</p></div>'}</div>`;
 }
-function renderPage(){syncVer();$('page').innerHTML=({emps:empsPage,privacy:privacyPage,contact:contactPage,terms:termsPage,join:joinPage,acct:acctPage,sub:subPage,projects:projectsPage,short:shortPage,reqs:reqsPage,me:mePage,queue:queuePage,reports:reportsPage}[view]||shortPage)()}
+function renderPage(){syncVer();$('page').innerHTML=({emps:empsPage,privacy:privacyPage,contact:contactPage,partners:partnersPage,terms:termsPage,join:joinPage,acct:acctPage,sub:subPage,projects:projectsPage,short:shortPage,reqs:reqsPage,me:mePage,queue:queuePage,reports:reportsPage}[view]||shortPage)()}
 function openOnMap(id,tab){const t=byId(id);if(!t||!canOpen(id))return;show('find');sheetTab=tab||'over';sel=null;if(!matches(t)){setSector(t.sector);setAvail('any')}customSite(t.city+', '+t.country,t.lat,t.lng,t.country);sel=id;renderSheet();update();fly()}
 $('page').addEventListener('change',e=>{
   if(!pj)return;
@@ -1538,7 +1542,7 @@ $('page').addEventListener('click',e=>{
   const b=e.target.closest('[data-pa]'); if(!b)return; const a=b.dataset.pa, id=b.dataset.id, v=i=>$(i).value.trim();
   const err=(el,m)=>{$(el).hidden=false;$(el).textContent=m};
   if(a==='coEdit'){coEdit=true}
-  else if(a==='coSave'){if(!v('coName'))return err('coErr','Enter the company name.');if(!/^\S+@\S+\.\S+$/.test(v('coEmail')))return err('coErr','Enter a valid email address.');A.company={name:v('coName'),vat:v('coVat'),addr:v('coAddr'),person:v('coPerson'),email:v('coEmail'),country:v('coCountry')};coEdit=false;toast('Company saved.')}
+  else if(a==='coSave'){if(!v('coName'))return err('coErr','Enter the company name.');if(!/^\S+@\S+\.\S+$/.test(v('coEmail')))return err('coErr','Enter a valid email address.');A.company={name:v('coName'),vat:v('coVat'),addr:v('coAddr'),person:v('coPerson'),email:v('coEmail'),country:v('coCountry'),web:webUrl(v('coWeb')),partner:$('coPartner').checked};coEdit=false;toast('Company saved.')}
   else if(a==='verBuy'){const u=new Date();u.setFullYear(u.getFullYear()+1);requestVerify();toast('Verification requested. An admin will check your certificates.')}
   else if(a==='subOn'){if(!A.company||!PLANS[id])return;const u=new Date();u.setMonth(u.getMonth()+1);A.sub={plan:id,from:today(),until:u.toISOString().slice(0,10),opened:subOn()?A.sub.opened:[]};update();toast(PLANS[id].name+' is active.'+(id==='basic'?' You can open '+PLANS.basic.limit+' profiles this month.':' You can open every profile.'))}
   else if(a==='subOff'){A.sub=null;sel=null;sheet.hidden=true;update()}
@@ -1627,9 +1631,11 @@ function companyBox(){
       <div class="field"><label class="flabel" for="coPerson">Contact person</label><input id="coPerson" value="${esc(co?co.person:'')}"></div>
       <div class="field"><label class="flabel" for="coEmail">Email</label><input id="coEmail" type="email" value="${esc(co?co.email:'')}"></div>
       <div class="field"><label class="flabel" for="coAddr">Registered business address</label><input id="coAddr" placeholder="Company address, not a home address" value="${esc(co?co.addr||'':'')}"></div>
-      <div class="field"><label class="flabel" for="coCountry">Country</label><input id="coCountry" value="${esc(co?co.country:'')}"></div></div>
+      <div class="field"><label class="flabel" for="coCountry">Country</label><input id="coCountry" value="${esc(co?co.country:'')}"></div>
+      <div class="field"><label class="flabel" for="coWeb">Website (optional)</label><input id="coWeb" placeholder="www.yourcompany.com" value="${esc(co?co.web||'':'')}"></div></div>
+      <label class="check"><input type="checkbox" id="coPartner"${co&&co.partner?' checked':''}> <span>Show our company as a <b>partner</b> on Human Resources WWW once approved: company name, country and website, under "Partners" and on the map page. You can untick this at any time.</span></label>
       <p class="err" id="coErr" hidden></p><div class="rowb"><button class="btn primary" type="button" data-pa="coSave">Save company</button></div></div>`
-    :`<div class="card slim"><div><b>${esc(co.name)}</b><div class="meta">${esc([co.vat&&'VAT '+co.vat,co.person,co.email,co.country].filter(Boolean).join(' · '))}</div></div><button class="btn small" type="button" data-pa="coEdit">Edit</button></div>`;
+    :`<div class="card slim"><div><b>${esc(co.name)}</b><div class="meta">${esc([co.vat&&'VAT '+co.vat,co.person,co.email,co.country].filter(Boolean).join(' · '))}</div><div class="meta">${co.partner?'Shown as partner'+(ACC.approved?'':' once approved'):'Not shown as partner'}</div></div><button class="btn small" type="button" data-pa="coEdit">Edit</button></div>`;
 }
 function subPage(){
   const st=!A.company?'none':ACC.approved?'ok':'wait';
@@ -1694,10 +1700,13 @@ function okTech(o){return o&&SECTORS[o.sector]&&typeof o.prof==='string'&&Array.
 function markReqs(){T.forEach(t=>{const r=A.requests.find(x=>x.techId===t.id);t.req=r?(r.status==='accepted'?'ok':r.status==='sent'?'sent':undefined):undefined})}
 
 let loading=null, lastPriv='', privT=null, dirtyPriv=false;
+let PARTNERS=[];
+const webUrl=w=>{w=String(w||'').trim();if(!w)return'';if(!/^https?:\/\//i.test(w))w='https://'+w;try{const u=new URL(w);return /^https?:$/.test(u.protocol)?u.href:''}catch(e){return''}};
 function loadAll(){if(!LIVE)return Promise.resolve();if(loading)return loading;
   loading=(async()=>{try{
     const {data:{session}}=await sb.auth.getSession(), u=session&&session.user;
     Object.assign(ACC,{state:u?'in':'out',uid:u?u.id:null,email:u?u.email:null,name:u?(u.email||'').split('@')[0]:''});
+    try{const pr=await sb.rpc('partners');PARTNERS=Array.isArray(pr.data)?pr.data.filter(x=>x&&x.name):[]}catch(e){}
     if(u){
       ACC.owner=!!(await run(sb.rpc('is_admin')));
       let acc=await run(sb.from('accounts').select('role').eq('id',u.id).maybeSingle());
@@ -1807,8 +1816,8 @@ function acctPage(){
 }
 function empsPage(){const l=ACC.emps.filter(e=>e.company&&e.company.name);
   return `<div class="pwrap"><div class="phead"><h1>Employers</h1></div><p class="meta">Approve real companies only. An approved employer sees every worker's name, contact details, CV and certificates, and can send job requests.</p>
-    ${l.map(e=>{const c=e.company;return `<div class="card"><div class="rowb between"><b>${esc(c.name)}</b><span class="tag ${e.approved?'ok':'warn'}">${e.approved?'Approved':'Waiting for approval'}</span></div>
-      <div class="meta">${esc([c.vat&&'VAT '+c.vat,c.person,c.email,c.addr,c.country].filter(Boolean).join(' · '))}</div>
+    ${l.map(e=>{const c=e.company;return `<div class="card"><div class="rowb between"><b>${esc(c.name)}</b><span>${c.partner?'<span class="tag ok">Partner: agreed</span> ':''}<span class="tag ${e.approved?'ok':'warn'}">${e.approved?'Approved':'Waiting for approval'}</span></span></div>
+      <div class="meta">${esc([c.vat&&'VAT '+c.vat,c.person,c.email,c.addr,c.country].filter(Boolean).join(' · '))}</div>${c.web?`<div class="meta">${esc(c.web)}</div>`:''}
       <div class="rowb">${e.approved?`<button class="btn small" type="button" data-pa="empNo" data-id="${esc(e.id)}">Remove approval</button>`:`<button class="btn primary small" type="button" data-pa="empOk" data-id="${esc(e.id)}">Approve</button>`}</div></div>`}).join('')
     ||'<div class="card"><h2>No employers yet</h2><p class="meta">Companies appear here after they register and enter their company details.</p></div>'}</div>`;
 }
@@ -1817,7 +1826,7 @@ function privacyPage(){const o=legalOp();
   return `<div class="pwrap"><div class="phead"><h1>Privacy notice</h1></div><div class="card">
     <h2>Who is responsible</h2><p class="meta">${o.name}, ${o.address}. Contact: ${o.email}.</p>
     <h2>What we collect</h2><p class="meta">Your email address and password (stored encrypted) to run your account. Workers add their name, contact details, profession, skills, languages, work history, education, certificates, town, availability and, if they want, a photo and day rate. Employers add their company details, projects and shortlist. We also store job requests, reviews and reports.</p>
-    <p class="meta"><b>We ask only for what is needed, and never for a home address.</b> Workers give their town only; the map shows the town, not where you live. Employers give their registered business details (company name, VAT number, business address, contact person and email).</p>
+    <p class="meta"><b>We ask only for what is needed, and never for a home address.</b> Workers give their town only; the map shows the town, not where you live. Employers give their registered business details (company name, VAT number, business address, contact person and email). If an employer ticks "Show our company as a partner", we publish its company name, country and website under Partners once we have approved it; it can untick this at any time.</p>
     <h2>Why</h2><p class="meta">To connect workers with employers, which is the service you sign up for (contract), and with your consent for the profile details you choose to publish. You can withdraw consent by deleting your profile.</p>
     <h2>Who sees what</h2><p class="meta">Everyone, also without an account, sees the public part of a worker profile: profession, skills, level, languages, town, availability, work preferences (such as on site, home office or B2B) and certificate types. No name, photo or contact details. Employers whose company we have approved, and our admins, also see name, contact details, photo, work history, education and certificate numbers. Job requests are visible only to the employer and worker involved. Reports are visible only to admins.</p>
     <h2>Where your data is stored and who helps us</h2><p class="meta">We use these service providers. Each one keeps or handles the data only to provide its service to us:</p>
@@ -1833,6 +1842,12 @@ function privacyPage(){const o=legalOp();
     <h2>Advertising from sponsors</h2><p class="meta">The site can show advertisements from sponsors, for example training centres offering safety and technical courses. Sponsor ads are shown without tracking: we do not share your data with sponsors, and their ads place no cookies. If you click an ad, you go to the sponsor's own website, where its own privacy notice applies.</p>
     <h2>How long</h2><p class="meta">Until you delete your account. Deleting it removes your profile, company details, requests and reviews immediately.</p>
     <h2>Your rights</h2><p class="meta">You can access, correct, export or delete your data, object to its use, and complain to your national data protection authority. Write to ${o.email}.</p></div></div>`}
+const partnerLink=p=>{const w=webUrl(p.web);return w?`<a href="${esc(w)}" target="_blank" rel="noopener nofollow">${esc(p.name)}</a>`:esc(p.name)};
+function partnersPage(){
+  return `<div class="pwrap"><div class="phead"><h1>Partners</h1></div><div class="card">
+    <p class="meta">These companies use Human Resources – World Wide Workforce to find skilled people. Each one is checked and approved by us.</p>
+    ${PARTNERS.length?`<ul class="plist">${PARTNERS.map(p=>`<li><b>${partnerLink(p)}</b>${p.country?` <span class="meta">· ${esc(p.country)}</span>`:''}</li>`).join('')}</ul>`:'<p class="lock">Our first partners will appear here soon.</p>'}
+    <p class="meta" style="margin-top:12px">Hiring? Register free as an employer and tick "Show our company as a partner".</p></div></div>`}
 function contactPage(){const o=legalOp(),m=o.email;
   return `<div class="pwrap"><div class="phead"><h1>Contact us</h1></div><div class="card">
     <p class="meta">Questions, problems with your account, a company waiting for approval, sponsoring or advertising, or a request about your data: write to us.</p>
@@ -1843,7 +1858,7 @@ function termsPage(){const o=legalOp();
   return `<div class="pwrap"><div class="phead"><h1>Terms</h1></div><div class="card">
     <h2>The service</h2><p class="meta">Human Resources WWW, run by ${o.name}, helps workers in construction, energy and wind find jobs and helps employers find them. We do not employ workers and are not a party to any job agreed through the site.</p>
     <h2>Workers</h2><p class="meta">Registration and your profile are free. You enter all profile information yourself and confirm that it is true and belongs to you. Approved employers can see your full profile, including name, contact details, CV and certificates. Verification is optional and free during launch.</p>
-    <h2>Employers</h2><p class="meta">Employer accounts are free during launch. We approve each company before it can see names and contact details. Use worker data only to offer work. Do not copy, sell or publish it.</p>
+    <h2>Employers</h2><p class="meta">Employer accounts are free during launch. We approve each company before it can see names and contact details. With your permission (a tick box in your company details) we show your company name, country and website as a partner on the site. Use worker data only to offer work. Do not copy, sell or publish it.</p>
     <h2>Advertising</h2><p class="meta">The site can show advertisements from sponsors, such as training centres. We are not responsible for the sponsors' offers; any agreement you make with a sponsor is between you and that sponsor.</p>
     <h2>Rules for everyone</h2><p class="meta">No false profiles or certificates, no spam, no discrimination. We can suspend profiles and accounts that break these rules. You can delete your account at any time.</p>
     <h2>Contact</h2><p class="meta">${o.email}</p></div></div>`}

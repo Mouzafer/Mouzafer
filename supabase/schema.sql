@@ -227,6 +227,15 @@ create policy reports_insert on public.reports for insert with check (auth.uid()
 create policy reports_read on public.reports for select using (public.is_admin() or reporter = auth.uid());
 create policy reports_delete on public.reports for delete using (public.is_admin());
 
+create or replace function public.partners()
+returns table(name text, country text, web text)
+language sql stable security definer set search_path = public as
+$$ select company->>'name', coalesce(company->>'country',''), coalesce(company->>'web','')
+   from employers
+   where approved and (company->>'partner')::boolean is true and coalesce(company->>'name','') <> ''
+   order by lower(company->>'name') $$;
+grant execute on function public.partners() to anon, authenticated;
+
 -- ---------- API access
 grant usage on schema public to anon, authenticated;
 grant select on public.workers, public.reviews to anon;

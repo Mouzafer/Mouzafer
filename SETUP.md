@@ -76,6 +76,11 @@ accepted or declined. Sent through the Brevo API.
    request (Brevo emails you about a blocked IP), and in Supabase you can run
    `select status_code, content from net._http_response order by created desc limit 5;`
 
+## 7. Partners list
+
+Approved companies that tick "Show our company as a partner" appear under **Partners** (footer) and
+in a bar above the results. Run `supabase/partners.sql` once in the SQL Editor to switch it on.
+
 ## Day-to-day
 
 - **Employers** register free and appear under **Employers**. Approve real companies only:
