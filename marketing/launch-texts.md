@@ -20,6 +20,7 @@ Ask the group admin first if the group has rules about links.
 >
 > ✅ Free for workers, no fees ever
 > ✅ Your name and contact stay hidden. Only companies I have checked and approved can see them
+> ✅ The map shows only your town, never your home address or street
 > ✅ On site, hybrid or home office; employee or B2B/freelance, you choose
 > ✅ Beginners welcome, and you can download your profile as a PDF CV
 >
@@ -34,7 +35,7 @@ Ask the group admin first if the group has rules about links.
 
 > Hi [name]! I've launched a free site for technicians: **humanresourceswww.com**
 > You make a profile once (skills, certs, when you're free) and companies find you on a map.
-> Your name stays hidden until a checked company contacts you.
+> Only your town is shown on the map (no address), and your name stays hidden until a checked company contacts you.
 > Takes 2 minutes. Would you register and pass it on to the crew? 🙏
 > https://humanresourceswww.com
 
@@ -56,6 +57,7 @@ Short version for a WhatsApp status (use `poster.png` as the picture):
 > 🔹 Workers register free with skills, certificates, languages and availability
 > 🔹 Companies search by trade, skill and distance to their site
 > 🔹 Names and contact details are shown only to companies we have approved
+> 🔹 The map shows a worker's town only, never a home address
 > 🔹 On site, hybrid or home office; employee or B2B
 >
 > Free for employers during launch.
