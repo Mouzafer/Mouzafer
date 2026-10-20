@@ -33,6 +33,14 @@ h1,h2,h3,p,dl,dd{margin:0}
 
 #radius:disabled{pointer-events:none;opacity:.45}#radWrap{cursor:pointer}
 .flash{outline:3px solid var(--accent);outline-offset:2px}
+#cvPrint{font:11pt/1.45 Arial,Helvetica,sans-serif;color:#111;max-width:180mm;margin:0 auto}
+#cvPrint header{display:flex;gap:16px;align-items:center;border-bottom:2px solid #123B7A;padding-bottom:10px;margin-bottom:6px}
+#cvPrint header img{width:30mm;height:30mm;border-radius:6px;object-fit:cover}
+#cvPrint h1{font-size:20pt;margin:0;color:#123B7A}#cvPrint .cvp{font-weight:bold;margin:2px 0}#cvPrint p{margin:2px 0}
+#cvPrint h2{font-size:12pt;color:#123B7A;border-bottom:1px solid #ccd;margin:12px 0 4px;padding-bottom:2px}
+#cvPrint ul{margin:0;padding-left:16px}#cvPrint li{margin:3px 0;break-inside:avoid}#cvPrint .cvd{float:right;color:#555;font-size:10pt}
+#cvPrint footer{margin-top:16px;padding-top:6px;border-top:1px solid #ccd;font-size:9pt;color:#555;text-align:center}
+@media print{@page{size:A4;margin:14mm}body>*:not(#cvPrint){display:none!important}#cvPrint{display:block!important}html,body{height:auto!important;background:#fff!important}}
 .app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
 .sfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px;padding:7px 16px;border-top:1px solid var(--line);background:var(--panel);font-size:12.5px;color:var(--muted)}
 .sfoot .linkbtn{font-size:12.5px}
@@ -447,6 +455,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
           <label class="check"><input type="checkbox" id="rgTraining"> <span>I am open to training on the job</span></label>
           <p class="lock">Many employers look for motivated beginners. No diploma or certificate is required to register.</p></div>
         <div class="field"><label class="flabel" for="rgBio">Professional summary <output id="rgBioN">0 / 400</output></label><textarea id="rgBio" rows="4" maxlength="400" placeholder="Two or three sentences: what you do best, typical projects, machines or materials you know. No home address."></textarea></div>
+        <div class="field"><label class="flabel" for="rgMotiv">Motivation (optional) <output id="rgMotivN">0 / 600</output></label><textarea id="rgMotiv" rows="4" maxlength="600" placeholder="What work are you looking for and why? What do you want to learn? Why should an employer choose you?"></textarea></div>
       </section>
       <section class="rstep" data-step="2" hidden>
         <h3>Skills</h3>
@@ -553,7 +562,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       <section class="rstep" data-step="7" hidden>
         <h3>Check your profile</h3>
         <div class="review" id="regReview"></div>
-        <p class="lock">Your profile is free and goes live as soon as you submit. Verification is optional and free during launch, in My area.</p>
+        <p class="lock">Your profile is free and goes live as soon as you submit. In My area you can then download it as a PDF CV. Verification is optional and free during launch.</p>
       </section>
       <p class="err" id="rgErr" hidden></p>
     </div>
@@ -1136,10 +1145,9 @@ function renderSheet(){
       <span><span class="tag ${c.m<0?'bad':c.m<3?'warn':'ok'}">${c.m<0?'Expired':c.m<3?'Expires soon':'Valid'}</span></span>
       <small>${c.issuer?'Issued by '+esc(c.issuer):'Issuer not stated'}</small>
       <small>${c.issued?'Gained '+mY(c.issued)+' · ':''}${c.exp?'valid until '+mY(c.exp):'No expiry date'}</small>
-      <small>${c.no?'No. '+esc(open?c.no:'••••'+String(c.no).slice(-3)):'No number entered'} · ${c.ver?(c.g?'verified in WINDA':'verified by admin'):t.pending?'check in progress':'not verified'}</small>
-      <small>${open?'File available':'File locked until the request is accepted'}</small></li>`).join('')}</ul>${cs.length?'':'<p class="lock">No certificates added yet.</p>'}</div>`;
+      <small>${c.no?'No. '+esc(open?c.no:'••••'+String(c.no).slice(-3)):'No number entered'} · ${c.ver?(c.g?'verified in WINDA':'verified by admin'):t.pending?'check in progress':'not verified'}</small></li>`).join('')}</ul>${cs.length?'':'<p class="lock">No certificates added yet.</p>'}</div>`;
   else body=`
-    ${t.bio?`<p>${esc(t.bio)}</p>`:''}
+    ${t.bio?`<p>${esc(t.bio)}</p>`:''}${t.motiv?`<p><b>Motivation:</b> ${esc(t.motiv)}</p>`:''}
     <dl class="stats">
       <div><dt>${noSite?'Based in':area?'To centre of country':'To site'}</dt><dd>${noSite?esc(short(t.city)):nf(hav(site,t))+' km'}</dd></div>
       <div><dt>Experience</dt><dd>${t.years?t.years+' years':'–'}</dd></div>
@@ -1183,7 +1191,7 @@ const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind'
 const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
 const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
 const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
-const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgB2b','rgRate','rgCur'], CHECKS=['rgBeginner','rgTraining','rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgBio','rgMotiv','rgCity','rgCountry','rgTravel','rgWinda','rgFrom','rgWork','rgB2b','rgRate','rgCur'], CHECKS=['rgBeginner','rgTraining','rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
 const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
@@ -1269,7 +1277,7 @@ $('rgPhoto').addEventListener('change',e=>{const f=e.target.files[0];if(!f)retur
 const okPhoto=v=>typeof v==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(v)?v:null;
 function photoPrev(){const el=$('rgPhotoPrev');el.style.backgroundImage=regPhoto?`url('${regPhoto}')`:'';el.textContent=regPhoto?'':((fv('rgFirst')[0]||'')+(fv('rgLast')[0]||'')).toUpperCase()||'?'}
 $('rgCity').addEventListener('change',()=>{const c=findTown(fv('rgCity'));if(c&&c.country&&!fv('rgCountry'))$('rgCountry').value=c.country});
-$('regForm').addEventListener('input',()=>{$('rgBioN').textContent=$('rgBio').value.length+' / 400';if(step===0)photoPrev();saveDraft()});
+$('regForm').addEventListener('input',()=>{$('rgBioN').textContent=$('rgBio').value.length+' / 400';$('rgMotivN').textContent=$('rgMotiv').value.length+' / 600';if(step===0)photoPrev();saveDraft()});
 $('regForm').addEventListener('click',e=>{if(e.target.closest('.chip'))saveDraft()});
 function regErr(m){const e=$('rgErr');e.hidden=!m;e.textContent=m;if(m)e.scrollIntoView({block:'nearest'})}
 // typed into an "Add …" box but pressed Continue: add it instead of losing it
@@ -1308,7 +1316,7 @@ function buildTech(){
     sector:sec,trade:sec==='other'?fv('rgTradeOther'):'',prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
-    free:(d=>d<=0?0:Math.ceil(d/7))(fv('rgFrom')?Math.round((Date.parse(fv('rgFrom'))-Date.parse(monISO))/864e5):0),years:+fv('rgYears')||0,bio:fv('rgBio'),
+    free:(d=>d<=0?0:Math.ceil(d/7))(fv('rgFrom')?Math.round((Date.parse(fv('rgFrom'))-Date.parse(monISO))/864e5):0),years:+fv('rgYears')||0,bio:fv('rgBio'),motiv:fv('rgMotiv'),
     beginner:$('rgBeginner').checked,training:$('rgTraining').checked,
     modes:[['site','rgModeSite'],['hybrid','rgModeHybrid'],['remote','rgModeRemote']].filter(x=>$(x[1]).checked).map(x=>x[0]),
     travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
@@ -1317,7 +1325,7 @@ function buildTech(){
 function renderReview(){
   const t=buildTech(), row=(a,b)=>`<dt>${a}</dt><dd>${esc(b||'–')}</dd>`;
   $('regReview').innerHTML=`<div class="box"><h3>Approved employers see</h3><dl>
-      ${row('Full name',t.full)}${row('Email',t.email)}${row('Phone',t.phone)}${row('Trade',tradeName(t))}${row('Profession',t.prof)}${row('Level',t.level)}${row('Experience',t.years?t.years+' years':'')}
+      ${row('Full name',t.full)}${row('Email',t.email)}${row('Phone',t.phone)}${row('Trade',tradeName(t))}${row('Profession',t.prof)}${row('Level',t.level)}${row('Experience',t.years?t.years+' years':'')}${row('Summary',t.bio)}${row('Motivation',t.motiv)}
       ${row('Skills',t.skills.map(s=>`${SK[s]} (${LV[t.skillInfo[s].lvl]}${t.skillInfo[s].yrs?', '+t.skillInfo[s].yrs+' y':''})`).join('; '))}
       ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
       ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
@@ -1467,13 +1475,31 @@ function oldInbox(){
     {id:2,company:'Example Construction SA',project:`${mine.prof} for a six-week job`,where:'Plovdiv, Bulgaria',start:addW(mon,6).toISOString().slice(0,10),weeks:6,msg:'Day rate by agreement. Please confirm your certificates are valid for the whole period.',status:'new'}];
   saveA();
 }
+// CV as PDF: a clean print layout; the browser's "Save as PDF" makes the file (works with every alphabet)
+function cvHTML(t){const e=esc,sec=(h,b)=>b?`<section><h2>${h}</h2>${b}</section>`:'',
+  li=a=>a.length?'<ul>'+a.join('')+'</ul>':'', ym=d=>d?new Date(d).toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'';
+  const skills=(t.skills||[]).map(k=>{const i=(t.skillInfo||{})[k]||{};return `<li><b>${e(SK[k]||k)}</b>${LV[i.lvl]?' – '+LV[i.lvl]:''}${i.yrs?', '+e(i.yrs)+' years':''}</li>`});
+  const jobs=(t.jobs||[]).map(j=>`<li><b>${e(j.role)}</b>${j.org||j.place?' · '+e([j.org,j.place].filter(Boolean).join(', ')):''}<span class="cvd">${e(j.from)} – ${e(j.to||'today')}</span>${j.text?`<div>${e(j.text)}</div>`:''}</li>`);
+  const edu=(t.edu||[]).map(x=>`<li><b>${e(x.title)}</b>${x.school?' · '+e(x.school):''}${x.year?`<span class="cvd">${e(x.year)}</span>`:''}</li>`);
+  const certs=(t.certList||[]).map(c=>`<li><b>${e(c.type)}</b>${c.no?' · No. '+e(c.no):''}${c.issuer?' · '+e(c.issuer):''}<span class="cvd">${c.issued?'gained '+ym(c.issued)+', ':''}${c.exp?'valid until '+ym(c.exp):'no expiry'}</span></li>`);
+  const prefs=[['Work mode',modesOf(t).map(m=>MODES[m]).join(', ')],['Travels',t.travel],['Available',aText(t)],['Works',t.work],['B2B',B2B[t.b2b]],['Turbines',t.oem]].filter(x=>x[1]).map(x=>`<li><b>${x[0]}:</b> ${e(x[1])}</li>`);
+  return `<header>${t.photo?`<img src="${t.photo}" alt="">`:''}<div><h1>${e(t.full||t.name)}</h1><p class="cvp">${e(t.prof)}${t.level?' · '+e(t.level):''}${t.years?' · '+e(t.years)+' years experience':''}</p>
+    <p>${[t.email,t.phone,[t.city,t.country].filter(Boolean).join(', ')].filter(Boolean).map(e).join(' · ')}</p></div></header>
+    ${sec('Profile',t.bio?`<p>${e(t.bio)}</p>`:'')}${sec('Motivation',t.motiv?`<p>${e(t.motiv)}</p>`:'')}
+    ${sec('Skills',li(skills))}${sec('Languages',(t.langList||[]).length?`<p>${t.langList.map(l=>e(l.name)+' ('+e(l.lvl)+')').join(', ')}</p>`:'')}
+    ${sec('Work experience',li(jobs))}${sec('Education and training',li(edu))}${sec('Certificates and licences',li(certs))}${sec('Work preferences',li(prefs))}
+    <footer>Created with humanresourcesWWW.com · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</footer>`}
+function printCV(t){const box=$('cvPrint'),old=document.title;box.innerHTML=cvHTML(t);box.hidden=false;
+  document.title='CV '+(t.full||t.name||'').replace(/[^\p{L}\p{N} .-]/gu,'').trim();
+  const done=()=>{box.hidden=true;box.innerHTML='';document.title=old;removeEventListener('afterprint',done)};addEventListener('afterprint',done);
+  setTimeout(()=>window.print(),50)}
 function mePage(){
   if(!mine)return `<div class="pwrap"><div class="phead"><h1>My area</h1></div><div class="card"><h2>You have no profile yet</h2><p class="meta">Choose how you want to start. Afterwards this page shows requests from employers, your availability calendar and reminders before a certificate expires.</p>
       <div class="joins"><div class="card"><h2>Quick profile</h2><p class="meta">About 2 minutes: your name, the work you do or want to do, your town and when you can start. No CV, diploma or certificates needed. You can add more later.</p><div class="rowb"><button class="btn primary" type="button" data-pa="regQuick">Start quick profile</button></div></div>
       <div class="card"><h2>Full profile</h2><p class="meta">For experienced workers: skills with levels, languages, work history, education and certificates. Employers trust complete profiles more.</p><div class="rowb"><button class="btn" type="button" data-pa="reg">Start full profile</button></div></div></div></div></div>`;
   ensureInbox(); const cs=certs(mine).slice().sort((a,b)=>a.m-b.m), bk=weeksOf(mine), rv=reviewsOf(mine), soon=cs.filter(c=>c.exp&&c.m<3).length;
   return `<div class="pwrap"><div class="phead"><h1>My area</h1></div>
-    ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button>',`<div class="meta">Your profile is live. Approved employers can find and open it.</div>`)}
+    ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button><button class="btn small" type="button" data-pa="cvPdf">Download my CV (PDF)</button>',`<div class="meta">Your profile is live. Approved employers can find and open it.</div>`)}
     ${!mine.skills.length||!(mine.langList||[]).length?'<div class="card"><h2>Complete your profile</h2><p class="meta">Add your skills and languages so employers find you more easily. It only takes a few minutes.</p><div class="rowb"><button class="btn primary small" type="button" data-pa="reg">Add skills and languages</button></div></div>':''}
     ${verifyCard()}
     <div class="card"><h2>Requests from employers</h2><p class="meta">Approved employers already see your contact details; here you accept or decline the job.</p>
@@ -1529,6 +1555,7 @@ $('page').addEventListener('click',e=>{
   else if(a==='demoAccept'){const r=A.requests.find(x=>x.techId===+id),t=byId(+id);if(r&&t){setReq(r,'accepted');t.req='ok';toast(t.name+' accepted your request.')}}
   else if(a==='reg'){return openReg()}
   else if(a==='regQuick'){return openReg(true)}
+  else if(a==='cvPdf'){if(mine)printCV(mine)}
   else if(a==='inAcc'||a==='inDec'){const r=A.inbox.find(x=>String(x.id)===id);if(r){setReq(r,a==='inAcc'?'accepted':'declined');toast(a==='inAcc'?'Accepted. '+r.company+' is informed.':'Request declined.')}}
   else if(a==='wk'){mine.booked=weeksOf(mine).slice();mine.booked[+id]=!mine.booked[+id];const f=mine.booked.indexOf(false);mine.free=f<0?12:f;saveMine(mine)}
   else if(a==='approve'){const t=byId(+id);if(t){t.real?adminVerify(t,'ok'):A.approved.push(t.id);toast(t.name+' is now verified.')}}
@@ -1654,7 +1681,7 @@ async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
 const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','booked','work','b2b','wk0'];
-const PRIV=['name','full','email','phone','photo','bio','jobs','edu','rate','certList'];
+const PRIV=['name','full','email','phone','photo','bio','motiv','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
   pub.wk0=monISO; // free and booked count weeks from this Monday
   pub.certList=(t.certList||[]).map(c=>({type:c.type,issuer:c.issuer||'',issued:c.issued||'',exp:c.exp||''}));
@@ -1905,4 +1932,5 @@ if(hasD3)svg.call(zoom.transform,fit(B,.98));
 })();
 </script>
 
+<div id="cvPrint" hidden></div>
 </body></html>
