@@ -1369,7 +1369,28 @@ function renderReview(){
       ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${t.beginner||t.training?row('Beginner',[t.beginner&&'New to the trade',t.training&&'Open to training'].filter(Boolean).join(', ')):''}${row('Right to work',[rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; '))}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${t.b2b&&B2B[t.b2b]?row('B2B',B2B[t.b2b]):''}${row('Day rate',t.rate||'On request')}</dl></div>
     <div class="box"><h3>Other workers and visitors see</h3><dl>${row('On the map','A dot near '+t.city)}${row('Name','Not shown')}${row('Contact','Not shown')}${row('Profile','Cannot be opened')}</dl></div>`;
 }
-function openReg(q){quick=!!q&&!mine;$('rgBeginner').closest('.box').hidden=false;if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':quick?'Quick profile (2 minutes)':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
+// Edit profile: always start from the saved profile, so it works on any phone or computer
+function fillFromMine(t){const set=(id,v)=>{const el=$(id);if(el)el.value=v==null?'':v},chk=(id,v)=>{const el=$(id);if(el)el.checked=!!v};
+  $('regForm').reset();const nm=String(t.full||'').trim().split(/\s+/);set('rgFirst',nm[0]||'');set('rgLast',nm.slice(1).join(' '));
+  set('rgEmail',t.email);set('rgPhone',t.phone);regPhoto=okPhoto(t.photo);
+  if(SECTORS[t.sector])$('rgSector').value=t.sector;
+  regSkills.clear();(t.skills||[]).filter(k=>SK[k]).forEach(k=>regSkills.add(k));R={skillInfo:clone(t.skillInfo||{}),langs:clone(t.langList||[]),jobs:clone(t.jobs||[]),edu:clone(t.edu||[]),certs:clone(t.certList||[])};
+  regSectorChanged(true);set('rgTradeOther',t.trade);
+  if([...$('rgProf').options].some(o=>o.value===t.prof))$('rgProf').value=t.prof;else{$('rgProf').value='Other';set('rgProfOther',t.prof)}
+  $('rgProfOtherWrap').hidden=$('rgProf').value!=='Other';
+  if(t.level)set('rgLevel',t.level);set('rgYears',t.years||'');set('rgMonths',t.months||0);set('rgBio',t.bio);set('rgMotiv',t.motiv);
+  chk('rgBeginner',t.beginner);chk('rgTraining',t.training);
+  regOem.clear();String(t.oem||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(x=>regOem.add(x));syncChips('rgOem',regOem);
+  set('rgCity',t.city);set('rgCountry',t.country);const tr=String(t.travel||'');set('rgTravel',tr.replace(', also offshore','')||'Neighbouring countries');chk('rgOffshore',tr.includes('also offshore'));
+  const md=modesOf(t);chk('rgModeSite',md.includes('site'));chk('rgModeHybrid',md.includes('hybrid'));chk('rgModeRemote',md.includes('remote'));
+  set('rgRtw',t.rtw||'');set('rgRtwOther',t.rtwOther);
+  const ids=t.ids||{};set('rgWinda',ids.winda);set('rgIrata',ids.irata);set('rgIrataLvl',ids.irataLvl||'1');set('rgSprat',ids.sprat);set('rgSpratLvl',ids.spratLvl||'1');set('rgOpito',ids.opito);set('rgOtherIdName',ids.otherName);set('rgOtherId',ids.other);
+  const f=addW(mon,+t.free||0);set('rgFrom',t.free>0?`${f.getFullYear()}-${p2(f.getMonth()+1)}-${p2(f.getDate())}`:'');
+  if(t.work)set('rgWork',t.work);set('rgB2b',t.b2b||'');
+  const rm=String(t.rate||'').match(/^(\d+)\s+(\w+)/);set('rgRate',rm?rm[1]:'');if(rm)set('rgCur',rm[2]);chk('rgRateShow',!!rm);
+  chk('rgOk',true);chk('rgTerms',true);
+  renderLists();renderSkillRows();photoPrev();$('rgBioN').textContent=$('rgBio').value.length+' / 400';$('rgMotivN').textContent=$('rgMotiv').value.length+' / 600';saveDraft()}
+function openReg(q){if(mine)fillFromMine(mine);quick=!!q&&!mine;$('rgBeginner').closest('.box').hidden=false;if(!mine&&ACC.name&&!fv('rgFirst')){const w=ACC.name.trim().split(/\s+/);$('rgFirst').value=w[0]||'';$('rgLast').value=w.slice(1).join(' ')}if(!fv('rgEmail')&&ACC.email)$('rgEmail').value=ACC.email;$('regOverlay').hidden=false;$('regTitle').textContent=mine?'Edit your profile':quick?'Quick profile (2 minutes)':'Register your profile';maxStep=mine?LAST:0;showStep(0);$('rgFirst').focus()}
 function placeMine(t){ T.splice(0,T.length,...T.filter(x=>!x.mine)); T.push(t); mine=t; }
 function removeMine(){ T.splice(0,T.length,...T.filter(x=>!x.mine)); mine=null; dbDeleteWorker(); store.set('hrwww.reg2',null); $('regForm').reset(); R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}; regOem.clear(); syncChips('rgOem',regOem); regPhoto=null; regSectorChanged(false); renderLists(); closeProfile(); toast('Your profile was removed.'); }
 loadDraft();
@@ -1554,7 +1575,7 @@ function queuePage(){
   const l=pendingList();
   return `<div class="pwrap"><div class="phead"><h1>Verification queue</h1></div><p class="meta">Workers who asked for verification wait here. Check each certificate against the uploaded file or the issuer's register, then verify or decline.</p>
     ${l.map(t=>pcard(t,`<button class="btn primary small" type="button" data-pa="approve" data-id="${t.id}">Verify profile and certificates</button><button class="btn small" type="button" data-pa="reject" data-id="${t.id}">Decline</button><button class="btn small" type="button" data-pa="open" data-id="${t.id}">Open profile</button>`,
-      `<div class="tblw"><table class="tbl"><thead><tr><th>Certificate</th><th>Issued by</th><th>Number</th><th>Valid until</th></tr></thead><tbody>${certs(t).map(c=>`<tr><td>${esc(c.n)}</td><td>${esc(c.issuer||'–')}</td><td>${esc(c.no||'–')}</td><td>${c.exp?mY(c.exp):'No expiry'}${c.m<0?' <span class="tag bad">Expired</span>':''}</td></tr>`).join('')||'<tr><td colspan="4">No certificates added</td></tr>'}</tbody></table></div>`)).join('')
+      `${idRows(t.ids).length?`<p class="meta"><b>Registration numbers:</b> ${idRows(t.ids).map(x=>esc(x[0])+' '+esc(x[1])).join(' · ')}</p>`:''}<div class="tblw"><table class="tbl"><thead><tr><th>Certificate</th><th>Issued by</th><th>Number</th><th>Valid until</th></tr></thead><tbody>${certs(t).map(c=>`<tr><td>${esc(c.n)}</td><td>${esc(c.issuer||'–')}</td><td>${esc(c.no||'–')}</td><td>${c.exp?mY(c.exp):'No expiry'}${c.m<0?' <span class="tag bad">Expired</span>':''}</td></tr>`).join('')||'<tr><td colspan="4">No certificates added</td></tr>'}</tbody></table></div>`)).join('')
     ||'<div class="card"><h2>Nothing to verify</h2><p class="meta">No paid verification is waiting.</p></div>'}</div>`;
 }
 function reportsPage(){
@@ -1592,6 +1613,7 @@ $('page').addEventListener('click',e=>{
   else if(a==='reg'){return openReg()}
   else if(a==='regQuick'){return openReg(true)}
   else if(a==='cvPdf'){if(mine)printCV(mine)}
+  else if(a==='regCerts'){openReg();quick=false;maxStep=Math.max(maxStep,4);showStep(4)}
   else if(a==='inAcc'||a==='inDec'){const r=A.inbox.find(x=>String(x.id)===id);if(r){setReq(r,a==='inAcc'?'accepted':'declined');toast(a==='inAcc'?'Accepted. '+r.company+' is informed.':'Request declined.')}}
   else if(a==='wk'){mine.booked=weeksOf(mine).slice();mine.booked[+id]=!mine.booked[+id];const f=mine.booked.indexOf(false);mine.free=f<0?12:f;saveMine(mine)}
   else if(a==='approve'){const t=byId(+id);if(t){t.real?adminVerify(t,'ok'):A.approved.push(t.id);toast(t.name+' is now verified.')}}
@@ -1689,13 +1711,13 @@ function syncVer(){T.forEach(t=>{const s=vstat(t);t.pending=s==='wait';t.unver=s
 function isVer(t){return !t.pending&&!t.unver}
 function verTag(t){return (isVer(t)?'<span class="tag ok">✓ Verified</span>':t.pending?'<span class="tag warn">Verification in progress</span>':'<span class="tag">Not verified</span>')+(t.real?'':'<span class="tag">Example profile</span>')}
 function verifyCard(){
-  const s=vstat(mine), has=(mine.certList||[]).length>0, v=mine.verify||{};
+  const s=vstat(mine), has=(mine.certList||[]).length>0||idRows(mine.ids).length>0, v=mine.verify||{};
   if(s==='ok')return `<div class="card"><h2>You are verified</h2><p class="meta">Your certificates were checked. The Verified badge is on your profile${v.until?' until '+longDate(v.until):''} and you appear before unverified profiles in every search.</p></div>`;
   if(s==='wait')return `<div class="card"><h2>Verification requested</h2><p class="meta">${v.from?'Requested on '+longDate(v.from)+'. ':''}An admin is checking each certificate with its issuer.</p></div>`;
   return `<div class="card plan"><div><h2>Get the Verified badge</h2><div class="price big"><b>Free</b> during launch</div><p class="meta">Optional. Your profile stays visible without it.</p></div>
-    <div style="display:grid;gap:12px"><ul class="incl"><li>We check every certificate with its issuer (WINDA for GWO)</li><li>The Verified badge on your profile and in the result list</li><li>You appear before unverified profiles in every search</li></ul>
+    <div style="display:grid;gap:12px"><ul class="incl"><li>We check your certificates and registration numbers with the issuer (WINDA for GWO, IRATA, SPRAT…)</li><li>The Verified badge on your profile and in the result list</li><li>You appear before unverified profiles in every search</li></ul>
     <div class="rowb"><button class="btn primary" type="button" data-pa="verBuy"${has?'':' disabled'}>Ask for verification</button></div>
-    ${has?'':'<p class="lock">Add at least one certificate to your profile first.</p>'}</div></div>`;
+    ${has?'':'<p class="lock">Add at least one certificate or registration number (e.g. WINDA ID, IRATA number) first.</p><div class="rowb"><button class="btn small" type="button" data-pa="regCerts">Add certificates</button></div>'}</div></div>`;
 }
 $('verOnly').addEventListener('change',e=>{F.verOnly=e.target.checked;update()});
 $('beginOnly').addEventListener('change',e=>{F.begin=e.target.checked;update()});
@@ -1735,7 +1757,8 @@ function markReqs(){T.forEach(t=>{const r=A.requests.find(x=>x.techId===t.id);t.
 let loading=null, lastPriv='', privT=null, dirtyPriv=false;
 let PARTNERS=[];
 const webUrl=w=>{w=String(w||'').trim();if(!w)return'';if(!/^https?:\/\//i.test(w))w='https://'+w;try{const u=new URL(w);return /^https?:$/.test(u.protocol)?u.href:''}catch(e){return''}};
-function loadAll(){if(!LIVE)return Promise.resolve();if(loading)return loading;
+let loadAgain=false; // a save finished while a load was running: load once more afterwards
+function loadAll(){if(!LIVE)return Promise.resolve();if(loading){loadAgain=true;return loading}
   loading=(async()=>{try{
     const {data:{session}}=await sb.auth.getSession(), u=session&&session.user;
     Object.assign(ACC,{state:u?'in':'out',uid:u?u.id:null,email:u?u.email:null,name:u?(u.email||'').split('@')[0]:''});
@@ -1775,7 +1798,7 @@ function loadAll(){if(!LIVE)return Promise.resolve();if(loading)return loading;
     markReqs();
   }catch(e){console.error(e);toast('Could not load the latest data. Check your connection.')}
   finally{loading=null}
-  applyRole();refresh()})();
+  applyRole();refresh();if(loadAgain){loadAgain=false;setTimeout(loadAll,0)}})();
   return loading}
 
 // writes
