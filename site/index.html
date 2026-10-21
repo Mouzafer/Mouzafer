@@ -391,6 +391,7 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       </div>
       <label class="check"><input type="checkbox" id="verOnly"> <span>Verified profiles only</span></label>
       <label class="check"><input type="checkbox" id="beginOnly"> <span>Beginners and people open to training</span></label>
+      <label class="check"><input type="checkbox" id="hideNot"> <span>Hide people who are not looking</span></label>
       <label class="check"><input type="checkbox" id="rtwOnly"> <span id="rtwLbl">Allowed to work in the EU</span></label>
       <label class="check"><input type="checkbox" id="b2bOnly"> <span>Open to B2B (freelancer invoices)</span></label>
     </section>
@@ -557,6 +558,9 @@ input[type=range]{width:100%;accent-color:var(--accent);padding:0;border:0;backg
       <section class="rstep" data-step="6" hidden>
         <h3>Availability and terms</h3>
         <div class="grid2">
+          <div class="field"><label class="flabel" for="rgStatus">Work status</label>
+            <select id="rgStatus"><option value="looking">Looking for work</option><option value="open">Employed, open to offers</option><option value="not">Employed, not looking (stay in the network)</option></select></div>
+          <div class="field" id="rgEmpUntilWrap" hidden><label class="flabel" for="rgEmpUntil">Employed until (optional)</label><input id="rgEmpUntil" type="date"></div>
           <div class="field"><label class="flabel" for="rgFrom">Available from</label><input id="rgFrom" type="date"></div>
           <div class="field"><label class="flabel" for="rgWork">How you work</label>
             <select id="rgWork"><option>Freelance / self-employed</option><option>Through my employer</option><option>Open to both</option></select></div>
@@ -641,7 +645,7 @@ const SECTORS={
  other:{name:'Other trade',profs:[],skills:{o_install:'Installation & assembly',o_maint:'Maintenance & repair',o_ops:'Machine & equipment operation',o_lead:'Team leading',o_safety:'Health & safety',o_qa:'Quality control',o_drive:'Driving & logistics'},certs:['Site safety induction card','First aid certificate']}
 };
 const B2B={possible:'B2B possible',preferred:'B2B preferred',must:'B2B only'};
-const MODES={site:'On site',hybrid:'Hybrid',remote:'Home office'}, modesOf=t=>Array.isArray(t.modes)&&t.modes.length?t.modes:['site'], modeTags=t=>modesOf(t).filter(m=>m!=='site').map(m=>`<span class="tag ok">${MODES[m]}</span>`).join('')+(t.beginner?'<span class="tag warn">New to the trade</span>':'')+(t.training?'<span class="tag ok">Open to training</span>':'')+(B2B[t.b2b]?`<span class="tag">${B2B[t.b2b]}</span>`:'')+(t.rtw==='eu'?'<span class="tag ok">EU work permit</span>':'')+(Array.isArray(t.quals)?t.quals.filter(q=>typeof q==='string').slice(0,3).map(q=>`<span class="tag ok">${esc(q)}</span>`).join(''):'');
+const MODES={site:'On site',hybrid:'Hybrid',remote:'Home office'}, modesOf=t=>Array.isArray(t.modes)&&t.modes.length?t.modes:['site'], modeTags=t=>modesOf(t).filter(m=>m!=='site').map(m=>`<span class="tag ok">${MODES[m]}</span>`).join('')+(t.beginner?'<span class="tag warn">New to the trade</span>':'')+(t.training?'<span class="tag ok">Open to training</span>':'')+(B2B[t.b2b]?`<span class="tag">${B2B[t.b2b]}</span>`:'')+statusTag(t)+(t.rtw==='eu'?'<span class="tag ok">EU work permit</span>':'')+(Array.isArray(t.quals)?t.quals.filter(q=>typeof q==='string').slice(0,3).map(q=>`<span class="tag ok">${esc(q)}</span>`).join(''):'');
 const tradeName=t=>t.sector==='other'&&t.trade?t.trade:(SECTORS[t.sector]||{name:''}).name;
 const PROFSEC={}; Object.entries(SECTORS).forEach(([k,v])=>{Object.assign(SK,v.skills);v.profs.forEach(p=>{if(!PROFSEC[p])PROFSEC[p]=k})});
 const CERT={blade:'GWO Blade Repair (BR)',rope:'IRATA Rope Access',elec:'GWO BTT Electrical',mech:'GWO BTT Mechanical',hyd:'GWO BTT Hydraulic',inst:'GWO BTT Installation',insp:'Blade inspection, internal and external',resc:'GWO Advanced Rescue Training (ART)'};
@@ -782,8 +786,10 @@ const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 const p2=n=>String(n).padStart(2,'0'), monISO=`${mon.getFullYear()}-${p2(mon.getMonth()+1)}-${p2(mon.getDate())}`; // week 0 of the availability calendar
 const addW=(d,w)=>{const x=new Date(d);x.setDate(x.getDate()+7*w);return x};
 const addM=m=>{const x=new Date(now);x.setMonth(x.getMonth()+m);return x};
-const aClass=t=>t.free===0?'now':t.free<=4?'soon':'later';
-const aText=t=>t.free===0?'Available now':'Free from '+fmt(addW(mon,t.free));
+const STATUS={looking:'Looking for work',open:'Employed, open to offers',not:'Employed, not looking'};
+const emp=t=>t.status==='open'||t.status==='not';
+const aClass=t=>emp(t)&&t.free===0?'later':t.free===0?'now':t.free<=4?'soon':'later';
+const aText=t=>t.free===0?(t.status==='open'?'Employed, open to offers':t.status==='not'?'Employed, not looking':'Available now'):'Free from '+fmt(addW(mon,t.free));
 const nf=n=>Math.round(n).toLocaleString('en-GB');
 const av=(t,big)=>`<span class="av${big?' big':''} ${aClass(t)}"${t.photo&&vis(t)?` style="background-image:url('${t.photo}')"`:''}>${t.photo&&vis(t)?'':esc(vis(t)?initials(t):'?')}</span>`;
 const initials=t=>t.name.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -952,15 +958,17 @@ const projCountry=()=>noSite?'':$('ctrySel').value;
 // allowed to work where the project is (without a project: anywhere in the EU)
 function canWorkHere(t){const pc=projCountry(),other=String(t.rtwOther||'').toLowerCase();
   if(!pc)return t.rtw==='eu';return (t.rtw==='eu'&&EUC.has(pc))||(t.rtw==='res'&&String(t.country).toLowerCase()===pc.toLowerCase())||(!!other&&other.includes(pc.toLowerCase()))}
+const statusTag=t=>emp(t)&&t.free>0?`<span class="tag">${t.status==='open'?'Employed · open to offers':'Employed · not looking'}</span>`:'';
 const qMatch=t=>!F.q||[t.prof,tradeName(t),...t.skills.map(k=>SK[k]||''),...(Array.isArray(t.quals)?t.quals:[])].join(' ').toLowerCase().includes(F.q);
 function fillQList(){const v=new Set();Object.values(SECTORS).forEach(x=>{v.add(x.name);x.profs.forEach(p=>v.add(p))});T.forEach(t=>{if(t.prof)v.add(t.prof);if(t.trade)v.add(t.trade)});v.delete('Other trade');$('qList').innerHTML=[...v].sort().map(n=>`<option value="${esc(n)}">`).join('')}
-function matches(t){return (!F.rtw||canWorkHere(t))&&(!F.b2b||!!B2B[t.b2b])&&(!F.begin||t.beginner||t.training)&&(!F.mode||F.mode==='any'||modesOf(t).includes(F.mode))&&qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
+function matches(t){return (!F.hideNot||t.status!=='not')&&(!F.rtw||canWorkHere(t))&&(!F.b2b||!!B2B[t.b2b])&&(!F.begin||t.beginner||t.training)&&(!F.mode||F.mode==='any'||modesOf(t).includes(F.mode))&&qMatch(t)&&!A.rejected.includes(t.id)&&(!F.verOnly||isVer(t))&&(F.sector==='all'||t.sector===F.sector)&&(F.prof==='all'||t.prof===F.prof)&&[...F.skills].every(s=>t.skills.includes(s)&&((t.skillInfo&&t.skillInfo[s]&&+t.skillInfo[s].lvl)||1)>=F.minLvl)&&(F.avail==='any'||t.free<=+F.avail)}
 function update(){
   syncVer(); regBtn();
   list=T.filter(matches); list.forEach(t=>{t.dist=hav(site,t);t.in=noSite||(F.mode==='remote'&&modesOf(t).includes('remote'))||(area?inArea(t):t.dist<=F.radius)}); list.sort((a,b)=>noSite?a.city.localeCompare(b.city):a.dist-b.dist);
   inR=list.filter(t=>t.in);
   if(F.sort==='free')inR.sort((a,b)=>a.free-b.free||a.dist-b.dist); else if(F.sort==='years')inR.sort((a,b)=>expM(b)-expM(a)||a.dist-b.dist);
   inR.sort((a,b)=>isVer(b)-isVer(a));
+  inR.sort((a,b)=>(a.status==='not')-(b.status==='not')); // not looking: last
   $('mstats').textContent=`${T.length} professionals in ${new Set(T.map(t=>t.country)).size} countries`;
   {const pb=$('partnerBar');pb.hidden=!PARTNERS.length;if(PARTNERS.length)pb.innerHTML='<b>Partners hiring here:</b> '+PARTNERS.slice(0,6).map(partnerLink).join(' · ')+(PARTNERS.length>6?` · <button type="button" class="linkbtn" data-page="partners">all ${PARTNERS.length}</button>`:'')}
   $('rtwLbl').textContent=projCountry()?'Allowed to work in '+projCountry():'Allowed to work in the EU';
@@ -1147,7 +1155,7 @@ function renderSheet(){
   let box;
   if(t.mine) box=`<div class="box"><h3>This is your profile</h3><p>This is how approved employers see you. Job requests appear in My area.</p><div class="row"><button class="btn small" type="button" data-act="edit">Edit profile</button><button class="btn small" type="button" data-act="remove">Remove profile</button></div></div>`;
   else if(!t.req) box=`<form class="box" id="reqForm">
-      <h3>Send a job request</h3>
+      <h3>Send a job request</h3>${emp(t)?`<p class="lock">${esc(t.status==='open'?'Currently employed but open to offers':'Currently employed and not looking')}${t.empUntil?', until '+longDate(t.empUntil):''}. You can still send a request.</p>`:''}
       <div class="field"><label class="flabel" for="rqP">Project</label><input id="rqP" value="${esc(reqTitle(t))}"></div>
       <div class="grid2">
         <div class="field"><label class="flabel" for="rqS">Start</label><input id="rqS" type="date" value="${addW(mon,Math.max(1,t.free)).toISOString().slice(0,10)}"></div>
@@ -1191,6 +1199,7 @@ function renderSheet(){
       <dt>Languages</dt><dd>${esc(t.langs||'Not stated')}</dd>
       <dt>Work mode</dt><dd>${esc(modesOf(t).map(m=>MODES[m]).join(', '))}</dd>
       ${t.beginner||t.training?`<dt>Experience</dt><dd>${[t.beginner&&'New to the trade, ready to learn',t.training&&'Open to training'].filter(Boolean).join(' · ')}</dd>`:''}
+      <dt>Work status</dt><dd>${esc(STATUS[t.status]||STATUS.looking)}${emp(t)&&t.empUntil?' until '+longDate(t.empUntil):''}</dd>
       <dt>Right to work</dt><dd>${esc([rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; ')||'Not stated')}</dd>
       <dt>Travels</dt><dd>${esc(t.travel||'Not stated')}</dd>
       <dt>Day rate</dt><dd>${esc(t.rate||'On request')}</dd>
@@ -1221,7 +1230,7 @@ const OEMS=['Vestas','Siemens Gamesa','Enercon','Nordex','GE Vernova','Goldwind'
 const LANGS=['English','German','Greek','Turkish','Bulgarian','Spanish','French','Italian','Portuguese','Polish','Danish','Romanian','Russian','Arabic','Other'];
 const WINDCERTS=['GWO BST Working at Heights','GWO BST First Aid','GWO BST Manual Handling','GWO BST Fire Awareness','GWO BST Sea Survival','GWO Blade Repair (BR)','GWO BTT Mechanical','GWO BTT Electrical','GWO BTT Hydraulic','GWO BTT Installation','GWO Advanced Rescue Training (ART)','GWO Enhanced First Aid (EFA)','IRATA Rope Access Level 1','IRATA Rope Access Level 2','IRATA Rope Access Level 3','SPRAT Rope Access','Offshore medical fitness'];
 const GENCERTS=['Site safety induction card','First aid certificate','Working at height certificate','Driving licence C / CE','Trade qualification / diploma','Other certificate'];
-const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgMonths','rgBio','rgMotiv','rgCity','rgCountry','rgTravel','rgRtw','rgRtwOther','rgWinda','rgIrata','rgIrataLvl','rgSprat','rgSpratLvl','rgOpito','rgOtherIdName','rgOtherId','rgFrom','rgWork','rgB2b','rgRate','rgCur'], CHECKS=['rgBeginner','rgTraining','rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
+const FIELDS=['rgFirst','rgLast','rgEmail','rgPhone','rgTradeOther','rgProf','rgProfOther','rgLevel','rgYears','rgMonths','rgBio','rgMotiv','rgCity','rgCountry','rgTravel','rgRtw','rgRtwOther','rgWinda','rgIrata','rgIrataLvl','rgSprat','rgSpratLvl','rgOpito','rgOtherIdName','rgOtherId','rgStatus','rgEmpUntil','rgFrom','rgWork','rgB2b','rgRate','rgCur'], CHECKS=['rgBeginner','rgTraining','rgModeSite','rgModeHybrid','rgModeRemote','rgOffshore','rgLicence','rgVehicle','rgRateShow','rgOk','rgTerms'];
 const regOem=new Set(); let R={skillInfo:{},langs:[],jobs:[],edu:[],certs:[]}, regPhoto=null, step=0, maxStep=0, mine=null;
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const CITYIDX={}; CITIES.forEach(c=>CITYIDX[c.name.toLowerCase()]=c);
@@ -1259,6 +1268,7 @@ function regSectorChanged(keep){
 }
 regSectorChanged(true);
 $('rgSector').addEventListener('change',()=>{regSectorChanged(false);saveDraft()});
+$('rgStatus').addEventListener('change',()=>{$('rgEmpUntilWrap').hidden=$('rgStatus').value==='looking'});
 $('rgProf').addEventListener('change',()=>{$('rgProfOtherWrap').hidden=$('rgProf').value!=='Other'});
 $('rcType').addEventListener('change',()=>{$('rcOtherWrap').hidden=$('rcType').value!=='Other certificate'});
 $('rlName').addEventListener('change',()=>{$('rlOtherWrap').hidden=$('rlName').value!=='Other'});
@@ -1352,7 +1362,7 @@ function buildTech(){
     sector:sec,trade:sec==='other'?fv('rgTradeOther'):'',prof:$('rgProf').value==='Other'?fv('rgProfOther'):$('rgProf').value,level:$('rgLevel').value,skills:[...regSkills],
     skillInfo:Object.fromEntries([...regSkills].map(k=>[k,{lvl:+R.skillInfo[k].lvl||2,yrs:+R.skillInfo[k].yrs||0,note:String(R.skillInfo[k].note||'').trim()}])),
     langList:R.langs.slice(),langs:R.langs.map(l=>l.name).join(', '),jobs:R.jobs.slice(),edu:R.edu.slice(),certList:R.certs.slice(),
-    free:(d=>d<=0?0:Math.ceil(d/7))(fv('rgFrom')?Math.round((Date.parse(fv('rgFrom'))-Date.parse(monISO))/864e5):0),years:Math.min(50,Math.max(0,Math.floor(+fv('rgYears')||0))),months:Math.min(11,Math.max(0,+$('rgMonths').value||0)),bio:fv('rgBio'),motiv:fv('rgMotiv'),ids:regIds(),rtw:RTW[$('rgRtw').value]?$('rgRtw').value:'',rtwOther:fv('rgRtwOther'),quals:qualsOf(regIds()),
+    free:(d=>d<=0?0:Math.ceil(d/7))(Math.max(fv('rgFrom')?Math.round((Date.parse(fv('rgFrom'))-Date.parse(monISO))/864e5):0,$('rgStatus').value!=='looking'&&fv('rgEmpUntil')?Math.round((Date.parse(fv('rgEmpUntil'))-Date.parse(monISO))/864e5)+1:0)),status:STATUS[$('rgStatus').value]?$('rgStatus').value:'looking',empUntil:$('rgStatus').value!=='looking'?fv('rgEmpUntil'):'',years:Math.min(50,Math.max(0,Math.floor(+fv('rgYears')||0))),months:Math.min(11,Math.max(0,+$('rgMonths').value||0)),bio:fv('rgBio'),motiv:fv('rgMotiv'),ids:regIds(),rtw:RTW[$('rgRtw').value]?$('rgRtw').value:'',rtwOther:fv('rgRtwOther'),quals:qualsOf(regIds()),
     beginner:$('rgBeginner').checked,training:$('rgTraining').checked,
     modes:[['site','rgModeSite'],['hybrid','rgModeHybrid'],['remote','rgModeRemote']].filter(x=>$(x[1]).checked).map(x=>x[0]),
     travel:$('rgTravel').value+($('rgOffshore').checked?', also offshore':''),oem:sec==='wind'?[...regOem].join(', '):'',rate:$('rgRateShow').checked&&fv('rgRate')?`${fv('rgRate')} ${$('rgCur').value} per day`:'',
@@ -1366,7 +1376,7 @@ function renderReview(){
       ${t.sector==='wind'?row('Turbines',t.oem):''}${row('Languages',t.langList.map(l=>`${l.name} (${l.lvl})`).join(', '))}
       ${row('Work history',t.jobs.length?t.jobs.map(j=>`${j.role}, ${j.from}–${j.to||'today'}`).join('; '):'None yet')}${row('Education',t.edu.length?t.edu.map(e=>e.title).join('; '):'None yet')}
       ${row('Certificates',t.certList.length?t.certList.map(c=>c.type+(c.no?' (No. '+c.no+')':'')).join('; '):'None yet')}${idRows(t.ids).map(x=>row(x[0],x[1])).join('')}
-      ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${t.beginner||t.training?row('Beginner',[t.beginner&&'New to the trade',t.training&&'Open to training'].filter(Boolean).join(', ')):''}${row('Right to work',[rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; '))}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${t.b2b&&B2B[t.b2b]?row('B2B',B2B[t.b2b]):''}${row('Day rate',t.rate||'On request')}</dl></div>
+      ${row('Base',t.city+', '+t.country)}${row('Work mode',modesOf(t).map(m=>MODES[m]).join(', '))}${t.beginner||t.training?row('Beginner',[t.beginner&&'New to the trade',t.training&&'Open to training'].filter(Boolean).join(', ')):''}${row('Work status',(STATUS[t.status]||STATUS.looking)+(emp(t)&&t.empUntil?' until '+longDate(t.empUntil):''))}${row('Right to work',[rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; '))}${row('Travels',t.travel)}${row('Available',aText(t))}${row('Works',t.work)}${t.b2b&&B2B[t.b2b]?row('B2B',B2B[t.b2b]):''}${row('Day rate',t.rate||'On request')}</dl></div>
     <div class="box"><h3>Other workers and visitors see</h3><dl>${row('On the map','A dot near '+t.city)}${row('Name','Not shown')}${row('Contact','Not shown')}${row('Profile','Cannot be opened')}</dl></div>`;
 }
 // Edit profile: always start from the saved profile, so it works on any phone or computer
@@ -1386,6 +1396,7 @@ function fillFromMine(t){const set=(id,v)=>{const el=$(id);if(el)el.value=v==nul
   set('rgRtw',t.rtw||'');set('rgRtwOther',t.rtwOther);
   const ids=t.ids||{};set('rgWinda',ids.winda);set('rgIrata',ids.irata);set('rgIrataLvl',ids.irataLvl||'1');set('rgSprat',ids.sprat);set('rgSpratLvl',ids.spratLvl||'1');set('rgOpito',ids.opito);set('rgOtherIdName',ids.otherName);set('rgOtherId',ids.other);
   const f=addW(mon,+t.free||0);set('rgFrom',t.free>0?`${f.getFullYear()}-${p2(f.getMonth()+1)}-${p2(f.getDate())}`:'');
+  set('rgStatus',STATUS[t.status]?t.status:'looking');set('rgEmpUntil',t.empUntil||'');$('rgEmpUntilWrap').hidden=!emp(t);
   if(t.work)set('rgWork',t.work);set('rgB2b',t.b2b||'');
   const rm=String(t.rate||'').match(/^(\d+)\s+(\w+)/);set('rgRate',rm?rm[1]:'');if(rm)set('rgCur',rm[2]);chk('rgRateShow',!!rm);
   chk('rgOk',true);chk('rgTerms',true);
@@ -1539,7 +1550,7 @@ function cvHTML(t){const e=esc,sec=(h,b)=>b?`<section><h2>${h}</h2>${b}</section
   const jobs=(t.jobs||[]).map(j=>`<li><b>${e(j.role)}</b>${j.org||j.place?' · '+e([j.org,j.place].filter(Boolean).join(', ')):''}<span class="cvd">${e(j.from)} – ${e(j.to||'today')}</span>${j.text?`<div>${e(j.text)}</div>`:''}</li>`);
   const edu=(t.edu||[]).map(x=>`<li><b>${e(x.title)}</b>${x.school?' · '+e(x.school):''}${x.year?`<span class="cvd">${e(x.year)}</span>`:''}</li>`);
   const certs=(t.certList||[]).map(c=>`<li><b>${e(c.type)}</b>${c.no?' · No. '+e(c.no):''}${c.issuer?' · '+e(c.issuer):''}<span class="cvd">${c.issued?'gained '+ym(c.issued)+', ':''}${c.exp?'valid until '+ym(c.exp):'no expiry'}</span></li>`);
-  const prefs=[['Right to work',[rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; ')],['Work mode',modesOf(t).map(m=>MODES[m]).join(', ')],['Travels',t.travel],['Available',aText(t)],['Works',t.work],['B2B',B2B[t.b2b]],['Turbines',t.oem]].filter(x=>x[1]).map(x=>`<li><b>${x[0]}:</b> ${e(x[1])}</li>`);
+  const prefs=[['Work status',(STATUS[t.status]||STATUS.looking)+(emp(t)&&t.empUntil?' until '+ym(t.empUntil):'')],['Right to work',[rtwText(t),t.rtwOther&&'also '+t.rtwOther].filter(Boolean).join('; ')],['Work mode',modesOf(t).map(m=>MODES[m]).join(', ')],['Travels',t.travel],['Available',aText(t)],['Works',t.work],['B2B',B2B[t.b2b]],['Turbines',t.oem]].filter(x=>x[1]).map(x=>`<li><b>${x[0]}:</b> ${e(x[1])}</li>`);
   return `<header>${t.photo?`<img src="${t.photo}" alt="">`:''}<div><h1>${e(t.full||t.name)}</h1><p class="cvp">${e(t.prof)}${t.level?' · '+e(t.level):''}${expText(t)?' · '+e(expText(t))+' experience':''}</p>
     <p>${[t.email,t.phone,[t.city,t.country].filter(Boolean).join(', ')].filter(Boolean).map(e).join(' · ')}</p></div></header>
     ${sec('Profile',t.bio?`<p>${e(t.bio)}</p>`:'')}${sec('Motivation',t.motiv?`<p>${e(t.motiv)}</p>`:'')}
@@ -1558,6 +1569,8 @@ function mePage(){
   return `<div class="pwrap"><div class="phead"><h1>My area</h1></div>
     ${pcard(mine,'<button class="btn small" type="button" data-pa="reg">Edit profile</button><button class="btn small" type="button" data-pa="open" data-id="${mine.id}">See my profile on the map</button><button class="btn small" type="button" data-pa="cvPdf">Download my CV (PDF)</button>',`<div class="meta">Your profile is live. Approved employers can find and open it.</div>`)}
     ${!mine.skills.length||!(mine.langList||[]).length?'<div class="card"><h2>Complete your profile</h2><p class="meta">Add your skills and languages so employers find you more easily. It only takes a few minutes.</p><div class="rowb"><button class="btn primary small" type="button" data-pa="reg">Add skills and languages</button></div></div>':''}
+    <div class="card"><h2>Work status</h2><p class="meta">Employed? Stay in the network. Change this with one tap whenever your situation changes.</p>
+      <div class="rowb" role="group" aria-label="Work status">${Object.entries(STATUS).map(([k,v])=>`<button class="btn small" type="button" data-pa="setStatus" data-id="${k}" aria-pressed="${(mine.status||'looking')===k}">${v}</button>`).join('')}</div></div>
     ${verifyCard()}
     <div class="card"><h2>Requests from employers</h2><p class="meta">Approved employers already see your contact details; here you accept or decline the job.</p>
       ${A.inbox.length?'':'<p class="lock">No requests yet. They appear here as soon as an employer sends one.</p>'}${A.inbox.map(r=>`<div class="inb"><div><b>${esc(r.company)}</b> · ${esc(r.project)}</div><div class="meta">${esc(r.where||'')}${r.start?' · starts '+longDate(r.start):''} · ${esc(r.duration||'')}${r.mode?' · '+esc(MODES[r.mode]||''):''}${r.training?' · training provided':''}</div><p>${esc(r.msg)}</p>
@@ -1613,6 +1626,7 @@ $('page').addEventListener('click',e=>{
   else if(a==='reg'){return openReg()}
   else if(a==='regQuick'){return openReg(true)}
   else if(a==='cvPdf'){if(mine)printCV(mine)}
+  else if(a==='setStatus'){if(mine&&STATUS[id]){mine.status=id;if(id==='looking')mine.empUntil='';saveMine(mine);renderPage();update();toast('Work status: '+STATUS[id]+'.')}}
   else if(a==='regCerts'){openReg();quick=false;maxStep=Math.max(maxStep,4);showStep(4)}
   else if(a==='inAcc'||a==='inDec'){const r=A.inbox.find(x=>String(x.id)===id);if(r){setReq(r,a==='inAcc'?'accepted':'declined');toast(a==='inAcc'?'Accepted. '+r.company+' is informed.':'Request declined.')}}
   else if(a==='wk'){mine.booked=weeksOf(mine).slice();mine.booked[+id]=!mine.booked[+id];const f=mine.booked.indexOf(false);mine.free=f<0?12:f;saveMine(mine)}
@@ -1723,6 +1737,7 @@ $('verOnly').addEventListener('change',e=>{F.verOnly=e.target.checked;update()})
 $('beginOnly').addEventListener('change',e=>{F.begin=e.target.checked;update()});
 $('b2bOnly').addEventListener('change',e=>{F.b2b=e.target.checked;update()});
 $('rtwOnly').addEventListener('change',e=>{F.rtw=e.target.checked;update()});
+$('hideNot').addEventListener('change',e=>{F.hideNot=e.target.checked;update()});
 syncVer();
 // ---------- accounts and data: Supabase (email + password sign-in, Postgres with row level security)
 // Tables and access rules: supabase/schema.sql. The public sees only the public part of each
@@ -1741,7 +1756,7 @@ async function run(p){const {data,error}=await p;if(error)throw error;return dat
 async function act(fn,ok){let good=true;try{await fn()}catch(e){good=false;dbErr(e)}await loadAll();if(good&&ok)toast(ok);return good}
 
 // worker profile: public part (map and search) and private part (name, contact, CV)
-const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','months','booked','work','b2b','wk0','quals','rtw','rtwOther'];
+const PUB=['sector','trade','modes','beginner','training','prof','level','skills','skillInfo','langList','langs','city','country','lat','lng','travel','oem','free','years','months','booked','work','b2b','wk0','quals','rtw','rtwOther','status','empUntil'];
 const PRIV=['name','full','email','phone','photo','bio','motiv','ids','jobs','edu','rate','certList'];
 function splitTech(t){const pub={},priv={};PUB.forEach(k=>{if(t[k]!==undefined)pub[k]=t[k]});PRIV.forEach(k=>{if(t[k]!==undefined)priv[k]=t[k]});
   pub.wk0=monISO; // free and booked count weeks from this Monday
