@@ -1856,6 +1856,7 @@ function applyRole(go){
   if(r===A.role&&started&&!go){nav();return}
   const first=!started;A.role=r;started=true;sel=null;sheet.hidden=true;
   if(first&&r==='guest'&&view!=='find')return nav(); // keep a page the visitor opened (privacy, terms)
+  if(first&&r!=='new'){show('find');update();return} // every visit opens on the home page (map)
   show(r==='guest'?'find':r==='new'?'join':r==='wrk'?'me':r==='emp'?(ACC.approved?'find':'sub'):'queue');update();
 }
 function refresh(){syncVer();nav();update();
