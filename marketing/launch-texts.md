@@ -126,3 +126,44 @@ Attach `poster-A4.pdf`.
 > M. Ismail Oglou
 > Human Resources – World Wide Workforce
 > info@humanresourceswww.eu
+
+---
+
+## 6. Messages to send with the flyer (Nov 2026)
+
+### Technicians and workers
+
+> Hi! 👋 I've launched **Human Resources – World Wide Workforce**.
+>
+> 🌍 **Our goal:** to put skilled technicians and workers from all over the world on one map, so companies can quickly find people **near their project**, and also people who are **ready to travel abroad**. Whether you're **looking for work now** or **already employed**, you can be part of the network.
+>
+> ✅ Free for workers, always
+> ✅ **Working now?** Stay in the network. Choose "Looking for work", "Employed, open to offers" or "Employed, not looking", and change it with one tap
+> ✅ Add when your contract ends, and companies see when you're free again
+> ✅ You choose how far you travel: your country, neighbouring countries, the whole continent or worldwide (offshore too)
+> ✅ Only your town is shown, never your address
+> ✅ Your name stays hidden until a checked company contacts you
+> ✅ Employee or B2B, on site, hybrid or home office
+> ✅ Download your profile as a PDF CV
+>
+> Register in 2 minutes: https://humanresourceswww.com
+>
+> If you know someone in the trade, please pass it on. Thank you! 🙏
+
+### Companies and employers
+
+> Hello! I've launched **Human Resources – World Wide Workforce**.
+>
+> 🌍 **Our goal:** a worldwide map of skilled technicians and workers, so you can find the right people **close to your project**, or people **ready to travel** to wherever the work is. It includes people who are **available now** and people who are **currently employed but open to offers**, with the date their contract ends.
+>
+> 🔎 Search by trade, skills, certificates (GWO, IRATA, SPRAT…), availability, right to work and distance to your site
+> ✈️ See who travels to neighbouring countries, the whole continent or worldwide, offshore included
+> ✅ Workers' details are shown only to approved companies
+>
+> Employer accounts are **free during launch**: https://humanresourceswww.com (choose "I am hiring")
+>
+> I'd be happy to hear your feedback. Questions: info@humanresourceswww.eu
+
+### WhatsApp status (with the flyer picture)
+
+> 🌍 Technicians worldwide on one map: near your project, ready to travel, available now or employed and open to offers. Free profile 👉 humanresourceswww.com
