@@ -116,3 +116,44 @@ Images in this folder:
 
 ### Message to share the channel with contacts
 > I've started a WhatsApp channel for **Human Resources – World Wide Workforce**: news and tips for technicians and skilled workers. Follow here: [paste your channel link]
+
+---
+
+## LinkedIn messages
+
+### Connection request notes (about 200 characters)
+To a technician:
+> Hi [Name], I've launched humanresourceswww.com, a free map where technicians worldwide are found by companies. I'd be glad to connect and hear your opinion!
+
+To a company or recruiter:
+> Hi [Name], I've built a worldwide map of skilled technicians (GWO, IRATA, welders…) for companies like yours. Free during launch. Happy to connect!
+
+### Message to a technician (after they accept)
+> Hi [Name], thanks for connecting! 👋
+>
+> I've launched **Human Resources – World Wide Workforce**, a free website where technicians and skilled workers create one profile and companies find them on a map, near their project or for work abroad.
+>
+> • Free, no fees ever
+> • Only your town is shown, never your address
+> • Your name is visible only to companies we have checked
+> • Working now? Join as "open to offers" and add when your contract ends
+> • Download your profile as a PDF CV
+>
+> It takes 2 minutes: https://humanresourceswww.com
+> If you like it, please share it with your colleagues. Thank you!
+
+### Message to a company, HR person or recruiter
+> Hello [Name], thanks for connecting!
+>
+> I've launched **Human Resources – World Wide Workforce**, a worldwide map of skilled technicians and workers. You can see who is near your project or ready to travel, who is available now, and who is employed but open to offers, with the date their contract ends.
+>
+> You can search by trade, skills, certificates (GWO, IRATA, SPRAT…), right to work and distance to your site.
+>
+> Employer accounts are **free during launch**: https://humanresourceswww.com (choose "I am hiring"). I approve new companies the same day.
+>
+> I'd really value your feedback: what would make this most useful for your hiring?
+
+### Follow-up (about a week later)
+> Hi [Name], just a short follow-up on humanresourceswww.com. If you have 2 minutes, I'd be grateful for your opinion, or if you could pass it to a colleague who hires technicians. Thanks and have a good week!
+
+Tips: at most 20–30 connection requests a day; always use the person's name and adjust one sentence; don't put the link in both the note and the first message.
