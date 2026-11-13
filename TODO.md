@@ -26,7 +26,7 @@ Smaller items:
   `select vault.update_secret((select id from vault.secrets where name='brevo_api_key'), 'NEW-KEY');`
   Do not save the key anywhere else.
 - Cancel the two unneeded Stellar Web Hosting plans at Namecheap.
-- Namecheap Private Email trial ends 18 Nov 2026, then renews yearly (mailbox for reading mail).
+- DONE: Private Email (info@humanresourceswww.eu) auto-renewed on 13 Nov 2026, plan "Private-expand", $41.88/year, valid until 18 Nov 2027. Optional: ask Namecheap to switch to the cheaper Starter plan and refund the difference.
 - Before charging money: move hosting from GitHub Pages to a host that allows commercial use
   (e.g. Cloudflare Pages). Same files, same address; only the DNS records in Namecheap change.
 - Advertising and income (plan together with the hosting move): sponsor banners or "featured" spots
